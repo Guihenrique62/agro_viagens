@@ -1,0 +1,72 @@
+import { NextRequest, NextResponse } from 'next/server'
+import { prisma } from '@/app/api/lib/prisma'
+import bcrypt from 'bcrypt'
+import jwt from 'jsonwebtoken'
+import { z } from 'zod'
+
+// Validação de entrada com Zod
+const loginSchema = z.object({
+  email: z.string().email('E-mail inválido'),
+  password: z.string().min(6, 'Senha deve ter no mínimo 6 caracteres')
+})
+
+export async function POST(req: NextRequest) {
+  try {
+
+    // Recebe o corpo da requisição e valida
+    const body = await req.json()
+    const parsed = loginSchema.safeParse(body)
+
+    // Se a validação falhar, retorna os erros
+    if (!parsed.success) {
+      return NextResponse.json({ error: parsed.error}, { status: 400 })
+    }
+
+    // Se a validação for bem-sucedida, extrai os dados
+    const { email, password } = parsed.data
+
+    // Verifica se o usuário existe no banco de dados
+    const user = await prisma.users.findUnique({
+      where: { email }
+    })
+
+    // Se o usuário não existir, retorna erro
+    if (!user) {
+      return NextResponse.json({ error: 'E-mail ou senha inválidos.' }, { status: 400 })
+    }
+
+    // Verifica a senha
+    const isPasswordValid = await bcrypt.compare(password, user.password)
+
+    // Se a senha estiver incorreta, retorna erro
+    if (!isPasswordValid) {
+      return NextResponse.json({ error: 'E-mail ou senha inválidos.' }, { status: 400 })
+    }
+
+    // Verifica se a SECRET do JWT está definida
+    if (!process.env.JWT_SECRET) {
+      throw new Error('JWT_SECRET is not defined in environment variables.');
+    }
+    // Gera token JWT
+    const token = jwt.sign({ userId: user.id, email: user.email }, process.env.JWT_SECRET, {
+      expiresIn: '1h'
+    })
+
+    // Salva o token no cookie (seguro e httpOnly)
+    const response = NextResponse.json({ message: 'Autenticado com sucesso', token})
+    response.cookies.set('token', token, {
+      httpOnly: true,  // Impede o acesso via JS no navegador
+      path: '/',       // Disponível em toda a aplicação
+      maxAge: 60 * 60, // 1 hora de validade
+      sameSite: 'lax', // Protege contra CSRF
+      secure: process.env.NODE_ENV === 'production'  // Garante que só será enviado por HTTPS em produção
+    })
+
+    return response
+
+    return NextResponse.json({ token }, { status: 200 })
+  } catch (err) {
+    console.error(err)
+    return NextResponse.json({ error: 'Erro interno do servidor.' }, { status: 500 })
+  }
+}
