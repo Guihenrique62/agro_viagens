@@ -1,33 +1,44 @@
 {
   "name": "agrofinances",
-  "version": "0.1.0",
+  "version": "10.1.0",
   "private": true,
   "scripts": {
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
+    "format": "prettier --write \"{app,demo,layout,types}/**/*.{js,ts,tsx,d.ts}\"",
     "lint": "next lint"
   },
   "dependencies": {
     "@prisma/client": "^6.7.0",
+    "@types/node": "20.3.1",
+    "@types/react": "18.2.12",
+    "@types/react-dom": "18.2.5",
     "bcrypt": "^5.1.1",
+    "chart.js": "4.2.1",
     "jsonwebtoken": "^9.0.2",
     "next": "15.3.1",
     "nodemailer": "^7.0.2",
-    "react": "^19.0.0",
-    "react-dom": "^19.0.0",
+    "primeflex": "^3.3.1",
+    "primeicons": "^6.0.1",
+    "primereact": "10.2.1",
+    "react": "18.2.0",
+    "react-dom": "18.2.0",
+    "sweetalert2": "^11.21.0",
     "zod": "^3.24.4"
   },
   "devDependencies": {
-    "@tailwindcss/postcss": "^4",
     "@types/bcrypt": "^5.0.2",
     "@types/jsonwebtoken": "^9.0.9",
     "@types/node": "^20",
     "@types/nodemailer": "^6.4.17",
-    "@types/react": "^19",
-    "@types/react-dom": "^19",
+    "@types/react": "18.2.21",
+    "@types/react-dom": "18.2.7",
+    "eslint": "8.43.0",
+    "eslint-config-next": "13.4.6",
+    "prettier": "^2.8.8",
     "prisma": "^6.7.0",
-    "tailwindcss": "^4",
+    "sass": "^1.63.4",
     "typescript": "^5"
   }
 }
