@@ -26,6 +26,7 @@ export async function middleware(req: NextRequest) {
 
   // Se o token não for encontrado, redireciona para a tela de login
   const token = req.cookies.get('token')?.value;
+  console.log('Token no middleware', token); // Log do token para depuração
 
   if (!token) {
     const loginUrl = new URL('/auth/login', req.url);

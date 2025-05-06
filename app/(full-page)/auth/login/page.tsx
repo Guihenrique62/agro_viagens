@@ -9,14 +9,19 @@ import { LayoutContext } from '../../../../layout/context/layoutcontext';
 import { InputText } from 'primereact/inputtext';
 import { classNames } from 'primereact/utils';
 import Swal from 'sweetalert2'
+import { ProgressSpinner } from 'primereact/progressspinner';
 
 const LoginPage = () => {
     const [checked, setChecked] = useState(false);
     const { layoutConfig } = useContext(LayoutContext);
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
+    const [loading, setLoading] = useState(false);
 
-    const handleLogin = async () => {
+    const handleLogin = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setLoading(true);
+
         try {
             const res = await fetch('/api/authenticate', {
                 method: 'POST',
@@ -30,21 +35,21 @@ const LoginPage = () => {
             const data = await res.json();
     
             if (!res.ok) {
-                // Trate o erro aqui (ex: mostrar mensagem)
-                console.error('Erro ao fazer login:', data.error);
+                // Login bem-sucedido, redireciona
+                Swal.fire({
+                    title: "Erro!",
+                    text: data.error,
+                    icon: "error",
+                });
+                setLoading(false);
                 return;
             }
             
-            console.log('Login bem-sucedido:', data);
-            // Login bem-sucedido, redireciona
-            Swal.fire({
-                title: "Logado com sucesso!",
-                icon: "success",
-              });
-
-            router.push('/');
+        
+            router.push('/blocks');
         } catch (err) {
             console.error('Erro inesperado:', err);
+            setLoading(false);
         }
     };
     
@@ -70,7 +75,7 @@ const LoginPage = () => {
                             <span className="text-600 font-medium line-height-3">Entre com sua conta</span>
                         </div>
 
-                        <form>
+                        <form onSubmit={handleLogin} >
                             <label htmlFor="email1" className="block text-900 text-xl font-medium mb-2">
                                 Email:
                             </label>
@@ -92,7 +97,8 @@ const LoginPage = () => {
                                 value={password} 
                                 onChange={(e) => setPassword(e.target.value)} 
                                 placeholder="Password" 
-                                toggleMask 
+                                feedback={false}
+                                toggleMask
                                 className="w-full mb-5" 
                                 inputClassName="w-full p-3 md:w-30rem">
 
@@ -107,7 +113,11 @@ const LoginPage = () => {
                                     Esqueci minha senha?
                                 </a>
                             </div>
-                            <Button label="Sign In" className="w-full p-3 text-xl" onClick={handleLogin}></Button>
+                            {loading ? (
+                                <ProgressSpinner style={{ width: '50px', height: '50px' }} strokeWidth="6" />
+                            ) : (
+                                <Button label="Sign In" className="w-full p-3 text-xl " type="submit" />
+                            )}
                         </form>
                     </div>
                 </div>

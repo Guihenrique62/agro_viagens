@@ -13,8 +13,23 @@ const loginSchema = z.object({
 export async function POST(req: NextRequest) {
   try {
 
-    // Recebe o corpo da requisição e valida
-    const body = await req.json()
+     // Lê o corpo cru da requisição
+     const rawBody = await req.text();
+
+     // Verifica se o corpo está vazio
+     if (!rawBody) {
+       return NextResponse.json({ error: 'Corpo da requisição vazio.' }, { status: 400 });
+     }
+
+    let body;
+    try {
+      // Tenta fazer o parse do JSON manualmente
+      body = JSON.parse(rawBody);
+    } catch (err) {
+      return NextResponse.json({ error: 'JSON malformado.' }, { status: 400 });
+    }
+
+
     const parsed = loginSchema.safeParse(body)
 
     // Se a validação falhar, retorna os erros
