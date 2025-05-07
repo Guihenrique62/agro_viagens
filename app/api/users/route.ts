@@ -3,7 +3,7 @@ import { prisma } from '@/app/api/lib/prisma'
 import bcrypt from 'bcrypt'
 import { z } from 'zod'
 
-import { verifyAuthHeader } from '@/app/api/lib/auth'
+import { verifyAuthHeaderFromAuthorization, verifyAuthHeader } from '@/app/api/lib/auth'
 
 
 // Validação do formulário para criação de usuário
@@ -28,7 +28,7 @@ export async function POST(req: NextRequest) {
   try {
 
     // Valida o token de autenticação
-    const authenticatedUser = verifyAuthHeader(req.headers.get('authorization'))
+    const authenticatedUser = await verifyAuthHeader()
 
     if (!authenticatedUser) {
       return NextResponse.json({ error: 'Não autorizado' }, { status: 401 })
@@ -66,12 +66,14 @@ export async function POST(req: NextRequest) {
         name,
         email,
         password: hashedPassword,
-        role
+        role,
+        status: 1 // Cadastra como user ativo
       },
       select: {
         id: true,
         name: true,
         email: true,
+        status: true,
         role: true
       }
     })
@@ -87,7 +89,7 @@ export async function POST(req: NextRequest) {
 export async function GET(req: NextRequest) { 
   try {
     // Valida o token de autenticação
-    const authenticatedUser = verifyAuthHeader(req.headers.get('authorization'))
+    const authenticatedUser = await verifyAuthHeader()
 
     if (!authenticatedUser) {
       return NextResponse.json({ error: 'Não autorizado' }, { status: 401 })
@@ -105,6 +107,7 @@ export async function GET(req: NextRequest) {
         name: true,
         email: true,
         role: true,
+        status: true,
         createdAt: true,
       }
     })

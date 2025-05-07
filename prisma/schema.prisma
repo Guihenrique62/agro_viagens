@@ -18,8 +18,11 @@ model Users {
   name     String
   email    String @unique
   password String
+  status   Int @default(1)
   role     Role
   createdAt DateTime @default(now())
+  mustChangePassword Boolean  @default(true)
+  
   passwordResets passwordReset[]
 }
 

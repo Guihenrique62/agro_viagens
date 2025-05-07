@@ -16,7 +16,7 @@ export async function PATCH(req: NextRequest, context: { params: { id: string } 
   const {id} = context.params
 
   // Valida o token de autenticação
-  const authenticatedUser = verifyAuthHeader(req.headers.get('authorization'))
+  const authenticatedUser = await verifyAuthHeader()
 
   if (!authenticatedUser) {
     return NextResponse.json({ error: 'Não autorizado' }, { status: 401 })
@@ -78,7 +78,7 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
   const id = params.id
 
   // Valida o token de autenticação
-  const authenticatedUser = verifyAuthHeader(req.headers.get('authorization'))
+  const authenticatedUser = await verifyAuthHeader()
 
   if (!authenticatedUser) {
     return NextResponse.json({ error: 'Não autorizado' }, { status: 401 })
@@ -100,6 +100,7 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
         name: true,
         email: true,
         role: true,
+        status: true,
         createdAt: true
       }
     })
@@ -124,7 +125,7 @@ export async function DELETE(req: NextRequest, context: { params: { id: string }
   const { id } = context.params
 
   // Valida o token de autenticação
-  const authenticatedUser = verifyAuthHeader(req.headers.get('authorization'))
+  const authenticatedUser = await verifyAuthHeader()
 
   if (!authenticatedUser) {
     return NextResponse.json({ error: 'Não autorizado' }, { status: 401 })

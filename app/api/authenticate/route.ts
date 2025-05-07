@@ -58,6 +58,8 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'E-mail ou senha inválidos.' }, { status: 400 })
     }
 
+    
+
     // Verifica se a SECRET do JWT está definida
     if (!process.env.JWT_SECRET) {
       throw new Error('JWT_SECRET is not defined in environment variables.');
@@ -75,6 +77,15 @@ export async function POST(req: NextRequest) {
         expiresIn: '1h'
       }
     )
+
+    // Verifica se é necessário trocar a senha
+    if (user.mustChangePassword) {
+      return NextResponse.json({
+      message: 'Troca de senha obrigatória',
+      mustChangePassword: true,
+      token: token
+      }, { status: 200 }) // ainda é sucesso, só exige ação do front
+    }
 
     // Salva o token no cookie (seguro e httpOnly)
     const response = NextResponse.json({ message: 'Autenticado com sucesso', token})

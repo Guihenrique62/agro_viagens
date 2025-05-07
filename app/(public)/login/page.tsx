@@ -10,8 +10,7 @@ import { InputText } from 'primereact/inputtext';
 import { classNames } from 'primereact/utils';
 import Swal from 'sweetalert2'
 import { ProgressSpinner } from 'primereact/progressspinner';
-
-import logoAgrocontar from '/layout/images/logo-agrocontar.svg';
+import { Dialog } from 'primereact/dialog';
 
 const LoginPage = () => {
     const [checked, setChecked] = useState(false);
@@ -19,6 +18,11 @@ const LoginPage = () => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [loading, setLoading] = useState(false);
+
+    const [showPasswordModal, setShowPasswordModal] = useState(false);
+    const [newPassword, setNewPassword] = useState('');
+    const [confirmNewPassword, setConfirmNewPassword] = useState('');
+    const [token, setToken] = useState('');
 
     const handleLogin = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -35,6 +39,10 @@ const LoginPage = () => {
             });
     
             const data = await res.json();
+
+            if (data.token) {
+                setToken(data.token); // <- Agora o token estará disponível para as próximas chamadas
+              }
     
             if (!res.ok) {
                 // Login bem-sucedido, redireciona
@@ -47,8 +55,14 @@ const LoginPage = () => {
                 return;
             }
             
-        
-            router.push('/');
+
+            if (data.mustChangePassword) {
+                setShowPasswordModal(true)
+
+                } else {
+                router.push('/');
+            }
+            
         } catch (err) {
             console.error('Erro inesperado:', err);
             setLoading(false);
@@ -57,10 +71,12 @@ const LoginPage = () => {
     
     const handlePassword = async (e: React.FormEvent) => {
         try {
+            
             const res = await fetch('/api/forgetPassword', {
                 method: 'POST',
                 headers: {
-                    'Content-Type': 'application/json'
+                    'Content-Type': 'application/json',
+
                 },
                 credentials: 'include', // ESSENCIAL para enviar e receber cookies
                 body: JSON.stringify({ email })
@@ -85,6 +101,59 @@ const LoginPage = () => {
         }
     }
 
+    const handleNewPassword = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setLoading(true);
+        if (newPassword !== confirmNewPassword) {
+            Swal.fire({
+                title: "Erro!",
+                text: "As senhas não coincidem.",
+                icon: "error",
+            });
+            setLoading(false);
+            return;
+        }
+        try {
+            const res = await fetch('/api/changePassword', {
+                method: 'PATCH',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'authorization': `Bearer ${token}`
+                },
+                credentials: 'include', // ESSENCIAL para enviar e receber cookies
+                body: JSON.stringify({ newPassword, token })
+            });
+    
+            const data = await res.json();
+    
+            if (!res.ok) {
+                // Login bem-sucedido, redireciona
+                Swal.fire({
+                    title: "Erro!",
+                    text: data.error,
+                    icon: "error",
+                });
+                setLoading(false);
+                return;
+            }
+            hideDialog()
+            router.push('/');
+            
+        } catch (err) {
+            console.error('Erro inesperado:', err);
+            setLoading(false);
+        }
+    };
+
+    const hideDialog = () => {
+        setShowPasswordModal(false);
+      };
+
+    const DialogFooter = (
+        <>
+          <Button label="Salvar" icon="pi pi-check" text onClick={handleNewPassword} />
+        </>
+      );
 
     const router = useRouter();
     const containerClassName = classNames('surface-ground flex align-items-center justify-content-center min-h-screen min-w-screen overflow-hidden', { 'p-input-filled': layoutConfig.inputStyle === 'filled' });
@@ -155,6 +224,32 @@ const LoginPage = () => {
                             )}
                         </form>
                     </div>
+                    
+                    <Dialog visible={showPasswordModal} style={{ width: '450px' }} header="Defina sua Senha" modal className="p-fluid" footer={DialogFooter} onHide={hideDialog}>
+                        <div className="field">
+                            <label htmlFor="newPassword">Nova Senha:</label>
+                            <Password
+                            id="newPassword"
+                            value={newPassword}
+                            onChange={(e) => setNewPassword(e.target.value)}
+                            required
+                            toggleMask
+                            feedback={false}
+                            />
+                        </div>
+                        <div className="field">
+                            <label htmlFor="confirPassword">Confirmar Senha:</label>
+                            <Password
+                            id="confirPassword"
+                            onChange={(e) => setConfirmNewPassword(e.target.value)}
+                            value={confirmNewPassword}
+                            required
+                            toggleMask
+                            feedback={false}
+
+                            />
+                        </div>
+                        </Dialog>
                 </div>
             </div>
         </div>
