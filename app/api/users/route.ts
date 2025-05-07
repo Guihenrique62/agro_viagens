@@ -3,6 +3,8 @@ import { prisma } from '@/app/api/lib/prisma'
 import bcrypt from 'bcrypt'
 import { z } from 'zod'
 
+import { verifyAuthHeader } from '@/app/api/lib/auth'
+
 
 // Validação do formulário para criação de usuário
 const userSchema = z.object({
@@ -21,13 +23,21 @@ const userUpdateSchema = z.object({
   role: z.enum(['Administrador', 'UsuarioPadrao']).optional()
 })
 
+
 export async function POST(req: NextRequest) {
   try {
-    // Simulação de autenticação de administrador
-    // const isAdmin = req.headers.get('x-user-role') === 'Administrador'
-    // if (!isAdmin) {
-    //   return NextResponse.json({ error: 'Acesso negado. Apenas administradores.' }, { status: 403 })
-    // }
+
+    // Valida o token de autenticação
+    const authenticatedUser = verifyAuthHeader(req.headers.get('authorization'))
+
+    if (!authenticatedUser) {
+      return NextResponse.json({ error: 'Não autorizado' }, { status: 401 })
+    }
+
+    // Valida se o usuário é um administrador
+    if (authenticatedUser.role !== 'Administrador') {
+      return NextResponse.json({ error: 'Acesso restrito a administradores' }, { status: 403 })
+    }
 
     //Valida os dados do usuário
     const body = await req.json()
@@ -76,11 +86,18 @@ export async function POST(req: NextRequest) {
 
 export async function GET(req: NextRequest) { 
   try {
-    // Simulação de autenticação de administrador
-    // const isAdmin = req.headers.get('x-user-role') === 'Administrador'
-    // if (!isAdmin) {
-    //   return NextResponse.json({ error: 'Acesso negado. Apenas administradores.' }, { status: 403 })
-    // }
+    // Valida o token de autenticação
+    const authenticatedUser = verifyAuthHeader(req.headers.get('authorization'))
+
+    if (!authenticatedUser) {
+      return NextResponse.json({ error: 'Não autorizado' }, { status: 401 })
+    }
+    
+    // Valida se o usuário é um administrador
+    if (authenticatedUser.role !== 'Administrador') {
+      return NextResponse.json({ error: 'Acesso restrito a administradores' }, { status: 403 })
+    }
+
 
     const users = await prisma.users.findMany({
       select: {

@@ -5,37 +5,69 @@ import React, { useContext, useState } from 'react';
 import { Checkbox } from 'primereact/checkbox';
 import { Button } from 'primereact/button';
 import { Password } from 'primereact/password';
-import { LayoutContext } from '../../../../layout/context/layoutcontext';
+import { LayoutContext } from '../../../layout/context/layoutcontext';
 import { InputText } from 'primereact/inputtext';
 import { classNames } from 'primereact/utils';
 import Swal from 'sweetalert2'
 import { ProgressSpinner } from 'primereact/progressspinner';
 
-const LoginPage = () => {
+const resetPasswordPage = () => {
     const [checked, setChecked] = useState(false);
     const { layoutConfig } = useContext(LayoutContext);
-    const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
+    const [confirmPassword, setConfirmPassword] = useState('');
     const [loading, setLoading] = useState(false);
 
-    const handleLogin = async (e: React.FormEvent) => {
+    const handleSubmite = async (e: React.FormEvent) => {
         e.preventDefault();
         setLoading(true);
 
+        if (password !== confirmPassword) {
+            Swal.fire({
+                title: "Erro!",
+                text: "As senhas não coincidem.",
+                icon: "error",
+            });
+            setLoading(false);
+            return;
+        }
+        if (password.length < 6) { 
+            Swal.fire({
+                title: "Erro!",
+                text: "A senha deve ter pelo menos 6 caracteres.",
+                icon: "error",
+            });
+            setLoading(false);
+            return;
+        }
+
+        const token = new URLSearchParams(window.location.search).get('AgroFinancesToken');
+        if (!token) {
+            Swal.fire({
+          title: "Erro!",
+          text: "Token não encontrado na URL.",
+          icon: "error",
+            });
+            setLoading(false);
+            return;
+        }
+        
+        console.log('Token:', token); // Verifica se o token está sendo capturado corretamente
+        console.log(password)
+
         try {
-            const res = await fetch('/api/authenticate', {
-                method: 'POST',
+            const res = await fetch('/api/forgetPassword/resetPassword', {
+                method: 'PATCH',
                 headers: {
                     'Content-Type': 'application/json'
                 },
                 credentials: 'include', // ESSENCIAL para enviar e receber cookies
-                body: JSON.stringify({ email, password })
+                body: JSON.stringify({ newPassword: password, token })
             });
     
             const data = await res.json();
     
             if (!res.ok) {
-                // Login bem-sucedido, redireciona
                 Swal.fire({
                     title: "Erro!",
                     text: data.error,
@@ -44,9 +76,8 @@ const LoginPage = () => {
                 setLoading(false);
                 return;
             }
-            
         
-            router.push('/blocks');
+            router.push('/login');
         } catch (err) {
             console.error('Erro inesperado:', err);
             setLoading(false);
@@ -75,48 +106,39 @@ const LoginPage = () => {
                             <span className="text-600 font-medium line-height-3">Entre com sua conta</span>
                         </div>
 
-                        <form onSubmit={handleLogin} >
-                            <label htmlFor="email1" className="block text-900 text-xl font-medium mb-2">
-                                Email:
-                            </label>
-                            <InputText 
-                                id="email1" 
-                                type="text" 
-                                placeholder="Endereço de e-mail" 
-                                className="w-full md:w-30rem mb-5" 
-                                style={{ padding: '1rem' }} 
-                                value={email}
-                                onChange={(e) => setEmail(e.target.value)}
-                            />
-
+                        <form onSubmit={handleSubmite} >
                             <label htmlFor="password1" className="block text-900 font-medium text-xl mb-2">
-                                Senha:
+                                Nova Senha:
                             </label>
                             <Password 
                                 inputId="password1" 
                                 value={password} 
                                 onChange={(e) => setPassword(e.target.value)} 
-                                placeholder="Password" 
+                                placeholder="Nova Senha" 
                                 feedback={false}
-                                toggleMask
+                                className="w-full md:w-30rem mb-5" 
+                                inputClassName="w-full p-3 md:w-30rem">
+
+                            </Password>
+                            
+                            <label htmlFor="password2" className="block text-900 font-medium text-xl mb-2">
+                                Confirmar Senha:
+                            </label>
+                            <Password 
+                                inputId="password2" 
+                                value={confirmPassword} 
+                                onChange={(e) => setConfirmPassword(e.target.value)} 
+                                placeholder="Confirmar Senha" 
+                                feedback={false}
                                 className="w-full mb-5" 
                                 inputClassName="w-full p-3 md:w-30rem">
 
                             </Password>
 
-                            <div className="flex align-items-center justify-content-between mb-5 gap-5">
-                                <div className="flex align-items-center">
-                                    <Checkbox inputId="rememberme1" checked={checked} onChange={(e) => setChecked(e.checked ?? false)} className="mr-2"></Checkbox>
-                                    <label htmlFor="rememberme1">Lembre-se de mim</label>
-                                </div>
-                                <a className="font-medium no-underline ml-2 text-right cursor-pointer" style={{ color: 'var(--primary-color)' }}>
-                                    Esqueci minha senha?
-                                </a>
-                            </div>
                             {loading ? (
                                 <ProgressSpinner style={{ width: '50px', height: '50px' }} strokeWidth="6" />
                             ) : (
-                                <Button label="Sign In" className="w-full p-3 text-xl " type="submit" />
+                                <Button label="Atualizar" className="w-full p-3 text-xl " type="submit" />
                             )}
                         </form>
                     </div>
@@ -126,4 +148,4 @@ const LoginPage = () => {
     );
 };
 
-export default LoginPage;
+export default resetPasswordPage;

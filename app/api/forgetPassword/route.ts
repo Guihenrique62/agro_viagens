@@ -44,7 +44,7 @@ export async function POST(req: NextRequest) {
     
 
     // Configura o link de redefinição
-    const resetLink = `${process.env.FRONTEND_URL}/reset-password?token=${resetToken}`
+    const resetLink = `${process.env.FRONTEND_URL}/resetPassword?token=${resetToken}`
 
     // Envia o e-mail
     await transporter.sendMail({

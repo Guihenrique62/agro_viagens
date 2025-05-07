@@ -64,13 +64,21 @@ export async function POST(req: NextRequest) {
     }
     
     // Gera token JWT
-    const token = jwt.sign({ userId: user.id, email: user.email }, process.env.JWT_SECRET, {
-      expiresIn: '1h'
-    })
+    const token = jwt.sign(
+      {
+        userId: user.id,
+        email: user.email,
+        role: user.role // <-- ADICIONE O ROLE AQUI
+      },
+      process.env.JWT_SECRET,
+      {
+        expiresIn: '1h'
+      }
+    )
 
     // Salva o token no cookie (seguro e httpOnly)
     const response = NextResponse.json({ message: 'Autenticado com sucesso', token})
-    response.cookies.set('token', token, {
+    response.cookies.set('AgroFinancesToken', token, {
       httpOnly: true,  // Impede o acesso via JS no navegador
       path: '/',       // Disponível em toda a aplicação
       maxAge: 60 * 60, // 1 hora de validade

@@ -1,49 +1,81 @@
-// src/middleware.ts
-export const config = {
-  matcher: ['/api/:path*', '/'], // Protege todas as rotas de API
+import { MiddlewareConfig, NextRequest, NextResponse } from "next/server";
+import {jwtDecode} from "jwt-decode";
+
+const publicRoutes = [
+  {path: '/login', whenAuthenticated: 'redirect'},
+  {path: '/resetPassword', whenAuthenticated: 'next'},
+] as const
+
+type JwtPayload = {
+  exp: number
+  [key: string]: any
 }
 
-// Middleware para autenticação
-import { NextRequest, NextResponse } from 'next/server'
-import jwt from 'jsonwebtoken'
-
-// Extending NextRequest to include a user property
-declare module 'next/server' {
-  interface NextRequest {
-    user?: any;
-  }
-}
-
-
-export async function middleware(req: NextRequest) {
-  // Roteamento para exceções (não protegemos essas rotas)
-  const url = req.url;
-
-  // Verifica se a URL corresponde àquelas que você deseja excluir
-  if (url.includes('/api/forgetPassword') || url.includes('/api/authenticate')) {
-    return NextResponse.next(); // Permite o acesso a essas rotas sem verificação de token
-  }
-
-  // Se o token não for encontrado, redireciona para a tela de login
-  const token = req.cookies.get('token')?.value;
-  console.log('Token no middleware', token); // Log do token para depuração
-
-  if (!token) {
-    const loginUrl = new URL('/auth/login', req.url);
-    return NextResponse.redirect(loginUrl);
-  }
-
+function isJwtExpired(token: string): boolean {
   try {
-    // Verifica o token JWT
-    if (!process.env.JWT_SECRET) {
-      throw new Error('JWT_SECRET is not defined in the environment variables');
-    }
-
-    const decoded = jwt.verify(token as string, process.env.JWT_SECRET);
-    req.user = decoded; // Atribui o usuário decodificado ao request
-    return NextResponse.next(); // Permite que a requisição prossiga
-  } catch (err) {
-    const loginUrl = new URL('/auth/login', req.url);
-    return NextResponse.redirect(loginUrl);
+    const decoded = jwtDecode<JwtPayload>(token)
+    const now = Math.floor(Date.now() / 1000)
+    return decoded.exp < now
+  } catch (error) {
+    return true // Considera expirado se não for possível decodificar
   }
 }
+
+export function middleware(req: NextRequest){
+  const pathname = req.nextUrl.pathname
+
+  console.log('Middleware:', pathname)
+
+  const publicRoute = publicRoutes.find(route => route.path === pathname)
+  const authToken = req.cookies.get('AgroFinancesToken')?.value
+
+  //Usuario não esta autenticado e a rota é publica
+  if(!authToken && publicRoute){
+    return NextResponse.next()
+  }
+
+  //Usuario não esta autenticado e a rota não é publica
+  if(!authToken && !publicRoute){
+
+    //Redireciona para o login
+    const redirectUrl = req.nextUrl.clone()
+    redirectUrl.pathname = '/login'
+    return NextResponse.redirect(redirectUrl)
+    
+  }
+
+  //Usuario esta autenticado e a rota é publica e o comportamento é redirecionar
+  if(authToken && publicRoute && publicRoute.whenAuthenticated === 'redirect'){
+
+    //Redireciona direto para a home
+    const redirectUrl = req.nextUrl.clone()
+    redirectUrl.pathname = '/'
+    return NextResponse.redirect(redirectUrl)
+  }
+
+  //Usuario esta autenticado e a rota é privada
+  if(authToken && !publicRoute){
+
+    //Verifica se o token é valido
+    const expired = isJwtExpired(authToken)
+
+    if (expired) {
+      const redirectUrl = req.nextUrl.clone()
+      redirectUrl.pathname = '/login'
+      req.cookies.delete('AgroFinancesToken')
+      return NextResponse.redirect(redirectUrl)
+    }
+    
+    return NextResponse.next()
+  }
+
+
+  return NextResponse.next()
+}
+
+export const config: MiddlewareConfig = {
+  matcher: [
+    '/((?!_next|favicon.ico|api|static|images|layout|fonts|themes).*)',
+  ],
+}
+export default middleware

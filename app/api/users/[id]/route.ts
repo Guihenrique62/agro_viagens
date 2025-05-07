@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/app/api/lib/prisma'
 import bcrypt from 'bcrypt'
 import { z } from 'zod'
+import { verifyAuthHeader } from '../../lib/auth'
 
 const updateSchema = z.object({
   name: z.string().optional(),
@@ -10,10 +11,24 @@ const updateSchema = z.object({
   role: z.enum(['Administrador', 'UsuarioPadrao']).optional()
 })
 
-export async function PATCH(req: NextRequest, { params }: { params: { id: string } }) {
+export async function PATCH(req: NextRequest, context: { params: { id: string } }) {
+
+  const {id} = context.params
+
+  // Valida o token de autenticação
+  const authenticatedUser = verifyAuthHeader(req.headers.get('authorization'))
+
+  if (!authenticatedUser) {
+    return NextResponse.json({ error: 'Não autorizado' }, { status: 401 })
+  }
+  
+  // Valida se o usuário é um administrador
+  if (authenticatedUser.role !== 'Administrador') {
+    return NextResponse.json({ error: 'Acesso restrito a administradores' }, { status: 403 })
+  }
+
 
   // validação do formulário para atualização de usuário
-  const { id } = params
   const body = await req.json()
   const parsed = updateSchema.safeParse(body)
 
@@ -58,8 +73,22 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
 
 
 
-export async function GET(_: NextRequest, { params }: { params: { id: string } }) {
-  const { id } = params
+export async function GET(req: NextRequest, { params }: { params: { id: string } }) {
+
+  const id = params.id
+
+  // Valida o token de autenticação
+  const authenticatedUser = verifyAuthHeader(req.headers.get('authorization'))
+
+  if (!authenticatedUser) {
+    return NextResponse.json({ error: 'Não autorizado' }, { status: 401 })
+  }
+  
+  // Valida se o usuário é um administrador
+  if (authenticatedUser.role !== 'Administrador') {
+    return NextResponse.json({ error: 'Acesso restrito a administradores' }, { status: 403 })
+  }
+  
 
   try {
 
@@ -90,8 +119,21 @@ export async function GET(_: NextRequest, { params }: { params: { id: string } }
 
 
 
-export async function DELETE(_: NextRequest, { params }: { params: { id: string } }) {
-  const { id } = params
+export async function DELETE(req: NextRequest, context: { params: { id: string } }) {
+  
+  const { id } = context.params
+
+  // Valida o token de autenticação
+  const authenticatedUser = verifyAuthHeader(req.headers.get('authorization'))
+
+  if (!authenticatedUser) {
+    return NextResponse.json({ error: 'Não autorizado' }, { status: 401 })
+  }
+  
+  // Valida se o usuário é um administrador
+  if (authenticatedUser.role !== 'Administrador') {
+    return NextResponse.json({ error: 'Acesso restrito a administradores' }, { status: 403 })
+  }
 
   try {
 
