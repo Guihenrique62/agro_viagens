@@ -41,7 +41,7 @@ const ResetPasswordPage = () => {
             return;
         }
 
-        const token = new URLSearchParams(window.location.search).get('AgroFinancesToken');
+        const token = new URLSearchParams(window.location.search).get('token');
         if (!token) {
             Swal.fire({
           title: "Erro!",

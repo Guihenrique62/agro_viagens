@@ -98,6 +98,12 @@ const LoginPage = () => {
                 setLoading(false);
                 return;
             }
+            // Email enviado com sucesso
+            Swal.fire({ 
+                title: "Sucesso!",
+                text: "Um email foi enviado para você com instruções para redefinir sua senha.",
+                icon: "success",
+            });
             
         } catch (err) {
             console.error('Erro inesperado:', err);

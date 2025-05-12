@@ -10,7 +10,7 @@ import { Button } from 'primereact/button';
 
 
 const AppTopbar = forwardRef<AppTopbarRef>((props, ref) => {
-    const { layoutConfig, setLayoutState, layoutState, onMenuToggle, showProfileSidebar, user } = useContext(LayoutContext);
+    const { layoutState, onMenuToggle, showProfileSidebar } = useContext(LayoutContext);
     const menubuttonRef = useRef(null);
     const topbarmenuRef = useRef(null);
     const topbarmenubuttonRef = useRef(null);
@@ -39,9 +39,6 @@ const AppTopbar = forwardRef<AppTopbarRef>((props, ref) => {
         </>
       );
     
-    const openConfigSidebar = () => {
-        setLayoutState(prevState => ({ ...prevState, configSidebarVisible: true }));
-    };
 
     return (
         <div className="layout-topbar">
@@ -65,10 +62,10 @@ const AppTopbar = forwardRef<AppTopbarRef>((props, ref) => {
                     <span>Profile</span>
                 </button> */}
 
-                <button type="button" onClick={openConfigSidebar} className="p-link layout-topbar-button">
+                {/* <button type="button" onClick={openConfigSidebar} className="p-link layout-topbar-button">
                     <i className="pi pi-cog"></i>
                     <span>Configurações</span>
-                </button>
+                </button> */}
                 
                 <button type="button" className="p-link layout-topbar-button" onClick={() => setLogoutDialog(true)}>
                     <i className="pi pi-sign-out"></i>
