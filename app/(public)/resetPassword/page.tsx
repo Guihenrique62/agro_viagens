@@ -11,7 +11,7 @@ import { classNames } from 'primereact/utils';
 import Swal from 'sweetalert2'
 import { ProgressSpinner } from 'primereact/progressspinner';
 
-const resetPasswordPage = () => {
+const ResetPasswordPage = () => {
     const [checked, setChecked] = useState(false);
     const { layoutConfig } = useContext(LayoutContext);
     const [password, setPassword] = useState('');
@@ -92,7 +92,7 @@ const resetPasswordPage = () => {
     return (
         <div className={containerClassName}>
             <div className="flex flex-column align-items-center justify-content-center">
-                <img src={`/layout/images/logo-agrocontar.svg`} alt="Sakai logo" className="mb-5 w-6rem flex-shrink-0" />
+                <img src={`/layout/images/logo-agrocontar.webp`} alt="Sakai logo" className="mb-5 w-6rem flex-shrink-0" />
                 <div
                     style={{
                         borderRadius: '56px',
@@ -148,4 +148,4 @@ const resetPasswordPage = () => {
     );
 };
 
-export default resetPasswordPage;
+export default ResetPasswordPage;

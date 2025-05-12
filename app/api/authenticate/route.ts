@@ -70,7 +70,8 @@ export async function POST(req: NextRequest) {
       {
         userId: user.id,
         email: user.email,
-        role: user.role // <-- ADICIONE O ROLE AQUI
+        role: user.role, // <-- ADICIONE O ROLE AQUI
+        name: user.name,
       },
       process.env.JWT_SECRET,
       {
@@ -99,7 +100,6 @@ export async function POST(req: NextRequest) {
 
     return response
 
-    return NextResponse.json({ token }, { status: 200 })
   } catch (err) {
     console.error(err)
     return NextResponse.json({ error: 'Erro interno do servidor.' }, { status: 500 })

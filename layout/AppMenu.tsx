@@ -1,24 +1,38 @@
 /* eslint-disable @next/next/no-img-element */
 
-import React, { useContext } from 'react';
+import React, { useContext, useEffect, useState } from 'react';
 import AppMenuitem from './AppMenuitem';
 import { LayoutContext } from './context/layoutcontext';
 import { MenuProvider } from './context/menucontext';
 import Link from 'next/link';
 import { AppMenuItem } from '@/types';
+import {jwtDecode} from "jwt-decode";
+
+type JwtPayload = {
+    exp: number;
+    role?: string;
+    [key: string]: any;
+};
 
 const AppMenu = () => {
-    const { layoutConfig } = useContext(LayoutContext);
+    const { layoutConfig, user} = useContext(LayoutContext);
+
+    const isAdmin = user?.role === 'Administrador';
+
 
     const model: AppMenuItem[] = [
         {
             label: 'Home',
             items: [{ label: 'Dashboard', icon: 'pi pi-fw pi-home', to: '/' }]
         },
-        {
-            label: 'Configurações',
-            items: [{ label: 'Usuarios', icon: 'pi pi-fw pi-cog', to: '/users' }]
-        },
+        ...(isAdmin
+            ? [
+                {
+                    label: 'Configurações',
+                    items: [{ label: 'Usuarios', icon: 'pi pi-fw pi-cog', to: '/users' }]
+                }
+            ]
+            : [])
         
     ];
 

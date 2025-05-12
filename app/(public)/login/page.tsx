@@ -14,15 +14,18 @@ import { Dialog } from 'primereact/dialog';
 
 const LoginPage = () => {
     const [checked, setChecked] = useState(false);
-    const { layoutConfig } = useContext(LayoutContext);
+    const { layoutConfig, refreshUser } = useContext(LayoutContext);
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [loading, setLoading] = useState(false);
 
     const [showPasswordModal, setShowPasswordModal] = useState(false);
+    const [showErrorModal, setShowErrorModal] = useState(false);
+    const [errorMessage, setErrorMessage] = useState('');
     const [newPassword, setNewPassword] = useState('');
     const [confirmNewPassword, setConfirmNewPassword] = useState('');
     const [token, setToken] = useState('');
+
 
     const handleLogin = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -60,6 +63,7 @@ const LoginPage = () => {
                 setShowPasswordModal(true)
 
                 } else {
+                await refreshUser()
                 router.push('/');
             }
             
@@ -104,12 +108,23 @@ const LoginPage = () => {
     const handleNewPassword = async (e: React.FormEvent) => {
         e.preventDefault();
         setLoading(true);
+
+        if (!newPassword || !confirmNewPassword) {
+            setErrorMessage('Por favor, preencha todos os campos.');
+            setShowErrorModal(true);
+            setLoading(false);
+            return;
+        }
+        if (newPassword.length < 6) {
+            setErrorMessage('A senha deve ter pelo menos 6 caracteres.');
+            setShowErrorModal(true);
+            setLoading(false);
+            return;
+        }
+        
         if (newPassword !== confirmNewPassword) {
-            Swal.fire({
-                title: "Erro!",
-                text: "As senhas não coincidem.",
-                icon: "error",
-            });
+            setErrorMessage('As senhas não coincidem.');
+            setShowErrorModal(true);
             setLoading(false);
             return;
         }
@@ -127,7 +142,7 @@ const LoginPage = () => {
             const data = await res.json();
     
             if (!res.ok) {
-                // Login bem-sucedido, redireciona
+                
                 Swal.fire({
                     title: "Erro!",
                     text: data.error,
@@ -137,6 +152,7 @@ const LoginPage = () => {
                 return;
             }
             hideDialog()
+            await refreshUser()
             router.push('/');
             
         } catch (err) {
@@ -155,13 +171,19 @@ const LoginPage = () => {
         </>
       );
 
+    const ErrorFooter = (
+    <>
+        <Button label="OK" icon="pi pi-check" text onClick={()=> setShowErrorModal(false)} />
+    </>
+    );
     const router = useRouter();
     const containerClassName = classNames('surface-ground flex align-items-center justify-content-center min-h-screen min-w-screen overflow-hidden', { 'p-input-filled': layoutConfig.inputStyle === 'filled' });
 
     return (
         <div className={containerClassName}>
+            
             <div className="flex flex-column align-items-center justify-content-center">
-                <img src={`/layout/images/logo-agrocontar.svg`} alt="Logo Agrocontar" className="mb-5 w-6rem flex-shrink-0" />
+                <img src={`/layout/images/logo-agrocontar.webp`} alt="Logo Agrocontar" className="mb-5 w-6rem flex-shrink-0" />
                 <div
                     style={{
                         borderRadius: '56px',
@@ -250,6 +272,10 @@ const LoginPage = () => {
                             />
                         </div>
                         </Dialog>
+
+                    <Dialog visible={showErrorModal} style={{ width: '450px' }} header="Erro" modal className="p-fluid" footer={ErrorFooter} onHide={()=> setShowErrorModal(false)}>
+                        <span>{errorMessage}</span>
+                    </Dialog>
                 </div>
             </div>
         </div>

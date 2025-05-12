@@ -1,7 +1,15 @@
 'use client';
-import React, { useState, createContext } from 'react';
+import React, { useState, createContext, useEffect } from 'react';
 import { LayoutState, ChildContainerProps, LayoutConfig, LayoutContextProps } from '@/types';
+import { jwtDecode } from 'jwt-decode';
 export const LayoutContext = createContext({} as LayoutContextProps);
+
+type User = {
+    role: string;
+    userId: string;
+    email: string;
+    name: string;
+}
 
 export const LayoutProvider = ({ children }: ChildContainerProps) => {
     const [layoutConfig, setLayoutConfig] = useState<LayoutConfig>({
@@ -9,7 +17,7 @@ export const LayoutProvider = ({ children }: ChildContainerProps) => {
         inputStyle: 'outlined',
         menuMode: 'static',
         colorScheme: 'light',
-        theme: 'lara-light-indigo',
+        theme: 'soho-light',
         scale: 14
     });
 
@@ -21,6 +29,29 @@ export const LayoutProvider = ({ children }: ChildContainerProps) => {
         staticMenuMobileActive: false,
         menuHoverActive: false
     });
+
+    const [user, setUser] = useState<User | null>(null);
+
+    const refreshUser = async () => {
+        try {
+            const res = await fetch('/api/isAdmin', {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                credentials: 'include',
+            });
+            if (!res.ok) return;
+            const data = await res.json();
+            setUser(data);
+        } catch (err) {
+            console.error('Erro ao buscar usuário:', err);
+        }
+    };
+
+    useEffect(() => {
+        refreshUser();
+    }, []);
 
     const onMenuToggle = () => {
         if (isOverlay()) {
@@ -52,7 +83,9 @@ export const LayoutProvider = ({ children }: ChildContainerProps) => {
         layoutState,
         setLayoutState,
         onMenuToggle,
-        showProfileSidebar
+        showProfileSidebar,
+        user,
+        refreshUser
     };
 
     return <LayoutContext.Provider value={value}>{children}</LayoutContext.Provider>;

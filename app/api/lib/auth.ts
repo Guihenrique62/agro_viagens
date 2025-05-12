@@ -5,6 +5,7 @@ type JwtPayload = {
   userId: string
   email: string
   role: 'Administrador' | 'UsuarioPadrao'
+  name: string
   exp: number
 }
 
@@ -16,7 +17,7 @@ export function verifyAuthHeaderFromAuthorization(authHeader: string | null): Jw
   try {
     if (!process.env.JWT_SECRET) throw new Error('JWT_SECRET not set')
     const decoded = jwt.verify(token, process.env.JWT_SECRET) as JwtPayload
-    return decoded
+    return decoded as JwtPayload
   } catch (err) {
     return null
   }
@@ -31,7 +32,7 @@ export async function verifyAuthHeader() {
 
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    return decoded as { userId: string; email: string; role: string };
+    return decoded as JwtPayload
   } catch (err) {
     console.error('Token inválido:', err);
     return null;

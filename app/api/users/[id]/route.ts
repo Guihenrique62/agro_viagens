@@ -4,6 +4,7 @@ import bcrypt from 'bcrypt'
 import { z } from 'zod'
 import { verifyAuthHeader } from '../../lib/auth'
 
+
 const updateSchema = z.object({
   name: z.string().optional(),
   email: z.string().email().optional(),
@@ -11,9 +12,9 @@ const updateSchema = z.object({
   role: z.enum(['Administrador', 'UsuarioPadrao']).optional()
 })
 
-export async function PATCH(req: NextRequest, context: { params: { id: string } }) {
+export async function PATCH(req: NextRequest, {params}: {params: Promise<{ id: string }>}) {
 
-  const {id} = context.params
+  const { id } = await params;
 
   // Valida o token de autenticação
   const authenticatedUser = await verifyAuthHeader()
@@ -72,27 +73,20 @@ export async function PATCH(req: NextRequest, context: { params: { id: string } 
 }
 
 
+export async function GET(req: NextRequest, {params}: {params: Promise<{ id: string }>}) {
+  const { id } = await params;
 
-export async function GET(req: NextRequest, { params }: { params: { id: string } }) {
-
-  const id = params.id
-
-  // Valida o token de autenticação
   const authenticatedUser = await verifyAuthHeader()
 
   if (!authenticatedUser) {
     return NextResponse.json({ error: 'Não autorizado' }, { status: 401 })
   }
-  
-  // Valida se o usuário é um administrador
+
   if (authenticatedUser.role !== 'Administrador') {
     return NextResponse.json({ error: 'Acesso restrito a administradores' }, { status: 403 })
   }
-  
 
   try {
-
-    // Procura o usuário pelo ID
     const user = await prisma.users.findUnique({
       where: { id },
       select: {
@@ -105,7 +99,6 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
       }
     })
 
-    // Se o usuário não for encontrado, retorna um erro 404
     if (!user) {
       return NextResponse.json({ error: 'Usuário não encontrado.' }, { status: 404 })
     }
@@ -120,9 +113,9 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
 
 
 
-export async function DELETE(req: NextRequest, context: { params: { id: string } }) {
+export async function DELETE(req: NextRequest, {params}: {params: Promise<{ id: string }>}) {
   
-  const { id } = context.params
+  const { id } = await params;
 
   // Valida o token de autenticação
   const authenticatedUser = await verifyAuthHeader()
