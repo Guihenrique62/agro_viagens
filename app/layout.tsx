@@ -15,7 +15,7 @@ export default function RootLayout({ children }: RootLayoutProps) {
     return (
         <html lang="pt-br" suppressHydrationWarning>
             <head>
-                <title>Agro Finanças</title>
+                <title>Agro Viagens</title>
                 <link id="theme-css" href={`/themes/lara-light-indigo/theme.css`} rel="stylesheet"></link>
                 
             </head>

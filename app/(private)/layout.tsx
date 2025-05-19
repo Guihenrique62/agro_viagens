@@ -6,13 +6,13 @@ interface AppLayoutProps {
 }
 
 export const metadata: Metadata = {
-    title: 'Agro Finanças',
+    title: 'Agro Viagens',
     description: '',
     robots: { index: false, follow: false },
     viewport: { initialScale: 1, width: 'device-width' },
     openGraph: {
         type: 'website',
-        title: 'Agro Finanças',
+        title: 'Agro Viagens',
         url: 'https://agrocontar.com.br',
         description: '',
         images: ['https://www.primefaces.org/static/social/sakai-react.png'],

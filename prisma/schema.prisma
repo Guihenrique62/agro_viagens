@@ -40,5 +40,12 @@ model passwordReset {
 }
 
 
+model transports {
+  id Int @id @default(autoincrement())
+  name String @unique
+  calculateKM Boolean
+  status Int @default(1)
+}
+
 
 

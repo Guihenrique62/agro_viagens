@@ -7,8 +7,8 @@ interface SimpleLayoutProps {
 }
 
 export const metadata: Metadata = {
-    title: 'Agro Finanças',
-    description: 'Agro Finanças - A sua plataforma de gestão financeira',
+    title: 'Agro Viagens',
+    description: 'Agro Viagens - A sua plataforma de gestão financeira',
 };
 
 export default function SimpleLayout({ children }: SimpleLayoutProps) {

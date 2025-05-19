@@ -169,6 +169,7 @@ const LoginPage = () => {
 
     const hideDialog = () => {
         setShowPasswordModal(false);
+        setLoading(false);
       };
 
     const DialogFooter = (
@@ -199,7 +200,7 @@ const LoginPage = () => {
                 >
                     <div className="w-full surface-card py-8 px-5 sm:px-8" style={{ borderRadius: '53px' }}>
                         <div className="text-center mb-5">
-                            <div className="text-900 text-3xl font-medium mb-3">Agro Finanças</div>
+                            <div className="text-900 text-3xl font-medium mb-3">Agro Viagens</div>
                             <span className="text-600 font-medium line-height-3">Entre com sua conta</span>
                         </div>
 
