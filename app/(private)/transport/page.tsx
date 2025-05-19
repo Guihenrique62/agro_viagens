@@ -1,55 +1,44 @@
 /* eslint-disable @next/next/no-img-element */
 'use client';
 import { Button } from 'primereact/button';
+import { Checkbox } from 'primereact/checkbox';
 import { Column } from 'primereact/column';
 import { DataTable } from 'primereact/datatable';
 import { Dialog } from 'primereact/dialog';
 import { Dropdown } from 'primereact/dropdown';
-import { FileUpload } from 'primereact/fileupload';
 import { InputText } from 'primereact/inputtext';
 import { ProgressSpinner } from 'primereact/progressspinner';
 import { Toast } from 'primereact/toast';
 import { Toolbar } from 'primereact/toolbar';
 import { classNames } from 'primereact/utils';
 import React, { useEffect, useRef, useState } from 'react';
-import { set } from 'zod';
 
-interface User {
-  id: string;
+interface Transport {
+  id: number;
   name: string;
-  email: string;
-  role: string;
+  calculateKM: boolean;
   status: number;
-  password?: string;
-}
-
-function getCookie(name: string): string | null {
-  const value = `; ${document.cookie}`;
-  const parts = value.split(`; ${name}=`);
-  if (parts.length === 2) return parts.pop()?.split(';').shift() || null;
-  return null;
 }
 
 
 const TransportPage = () => {
-  const emptyUser = {
-    id: '',
+  const emptyTransport = {
+    id: 0,
     name: '',
-    email: '',
-    role: '',
+    calculateKM: false,
     status: 1,
-    password: '',
+
   };
 
-  const [users, setUsers] = useState<User[]>([]);
-  const [user, setUser] = useState<User>(emptyUser);
+  const [transports, setTransports] = useState<Transport[]>([]);
+  const [transport, setTransport] = useState<Transport>(emptyTransport);
 
-  const [userDialog, setUserDialog] = useState(false);
-  const [deleteUserDialog, setDeleteUserDialog] = useState(false);
-  const [editUserDialog, setEditUserDialog] = useState(false);
+  const [transportDialog, setTransportDialog] = useState(false);
+  const [deleteTransportDialog, setDeleteTransportDialog] = useState(false);
+  const [editTransportDialog, setEditTransportDialog] = useState(false);
 
   
-  const [selectedUsers, setSelectedUsers] = useState(null);
+  const [selectedTransports, setSelectedTransports] = useState(null);
   const [submitted, setSubmitted] = useState(false);
 
   const [globalFilter, setGlobalFilter] = useState('');
@@ -57,11 +46,11 @@ const TransportPage = () => {
   const dt = useRef<DataTable<any>>(null);
   const [loading, setLoading] = useState(false);
 
-  // BUsca a lista de usuarios
-  const fetchUsers = async () => {
+  // BUsca a lista de transportes
+  const fetchTransports = async () => {
     try {
 
-      const res = await fetch('/api/users', {
+      const res = await fetch('/api/transport', {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
@@ -72,138 +61,135 @@ const TransportPage = () => {
       const data = await res.json();
 
       if (!res.ok) {
-        console.error('Erro ao buscar os usuários:', data.error);
+        console.error('Erro ao buscar os transportes:', data.error);
         toast.current?.show({
           severity: 'error',
           summary: 'Erro',
-          detail: 'Erro ao buscar os usuários.',
+          detail: 'Erro ao buscar os transportes.',
           life: 3000,
         });
         return;
       }
 
-      setUsers(data);
+      setTransports(data);
     } catch (err) {
       console.error('Erro inesperado:', err);
     }
   };
 
   useEffect(() => {
-    fetchUsers();
+    fetchTransports();
   }, []);
 
-  //Abre o dialogo de novo usuario
+  //Abre o dialogo de novo transporte
   const openNew = () => {
-    setUser(emptyUser);
+    setTransport(emptyTransport);
     setSubmitted(false);
-    setUserDialog(true);
+    setTransportDialog(true);
   };
 
-  //Abre o dialogo de editar usuario
-  const openEdit = (user: User) => {
-    setUser({ ...user });
+  //Abre o dialogo de editar transporte
+  const openEdit = (transport: Transport) => {
+    setTransport({ ...transport });
     setSubmitted(false);
-    setEditUserDialog(true);
+    setEditTransportDialog(true);
   };
 
   // esconde o diagolo 
   const hideDialog = () => {
     setSubmitted(false);
-    setUserDialog(false);
+    setTransportDialog(false);
   };
 
-  // esconde o dialogo de editar usuario
+  // esconde o dialogo de editar transport
   const hideEditUserDialog = () => {
     setSubmitted(false);
-    setEditUserDialog(false);
+    setEditTransportDialog(false);
   };
 
-  // esconde o dialogo de deletar usuario
-  const hideDeleteProductDialog = () => setDeleteUserDialog(false);
+  // esconde o dialogo de deletar transport
+  const hideDeleteProductDialog = () => setDeleteTransportDialog(false);
 
-  // Salva o usuario
-  const saveUser = async () => {
+  // Salva o transporte
+  const saveTransport = async () => {
     setSubmitted(true);
 
-  if (user.name.trim() && user.email.trim() && user.password && user.role) {
-    let _users = [...users];
-    let _user = { ...user };
+  if (transport.name.trim()) {
+    let _transports = [...transports];
+    let _transport = { ...transport };
 
-    if (user.id) {
-      const index = findIndexById(user.id);
-      _users[index] = _user;
+    if (transport.id) {
+      const index = findIndexById(transport.id);
+      _transports[index] = _transport;
       toast.current?.show({
         severity: 'success',
         summary: 'Sucesso',
-        detail: 'Usuário Atualizado',
+        detail: 'Transporte Atualizado',
         life: 3000,
       });
-      setUsers(_users);
+      setTransports(_transports);
     } else {
       try {
-        const res = await fetch('/api/users', {
+        const res = await fetch('/api/transport', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
           },
           credentials: 'include',
           body: JSON.stringify({
-            name: user.name,
-            email: user.email,
-            password: user.password,
-            role: user.role,
+            name: transport.name,
+            calculateKM: !!transport.calculateKM,
           }),
         });
 
         if (!res.ok) {
           const errorData = await res.json();
-          throw new Error(errorData.message || 'Erro ao criar usuário');
+          throw new Error(errorData.message || 'Erro ao criar Transporte');
         }
 
-        const createdUser = await res.json();
-        _user.id = createdUser.id; // assumindo que o back retorna o ID
-        _users.push(_user);
+        const createdTransport = await res.json();
+        _transport.id = createdTransport.id; // assumindo que o back retorna o ID
+        _transports.push(_transport);
 
         toast.current?.show({
           severity: 'success',
           summary: 'Sucesso',
-          detail: 'Usuário Criado',
+          detail: 'Transporte Criado',
           life: 3000,
         });
 
-        setUsers(_users);
+        setTransports(_transports);
       } catch (err: any) {
-        console.error('Erro ao criar usuário:', err);
+        console.error('Erro ao criar transporte:', err);
         toast.current?.show({
           severity: 'error',
           summary: 'Erro',
-          detail: err.message || 'Erro ao criar usuário',
+          detail: err.message || 'Erro ao criar transporte',
           life: 3000,
         });
         return;
       }
     }
 
-    setUserDialog(false);
-    setUser(emptyUser);
+    setTransportDialog(false);
+    setTransport(emptyTransport);
   }
   };
 
-  // Edita o usuario
-  const editUser = async () => {
-    if (!user.id) return;
+  // Edita o transporte
+  const editTransport = async () => {
+    if (!transport.id) return;
   
     try {
-      const res = await fetch(`/api/users/${user.id}`, {
+      const res = await fetch(`/api/transport/${transport.id}`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
         },
         credentials: 'include',
         body: JSON.stringify({
-          name: user.name,
-          email: user.email,
-          role: user.role,
+          name: transport.name,
+          calculateKM: transport.calculateKM,
         }),
       });
   
@@ -213,7 +199,7 @@ const TransportPage = () => {
         toast.current?.show({
           severity: 'error',
           summary: 'Erro',
-          detail: data.error || 'Erro ao editar o usuário.',
+          detail: data.error || 'Erro ao editar o transporte.',
           life: 3000,
         });
         return;
@@ -222,34 +208,34 @@ const TransportPage = () => {
       toast.current?.show({
         severity: 'success',
         summary: 'Sucesso',
-        detail: 'Usuário atualizado com sucesso.',
+        detail: 'Transporte atualizado com sucesso.',
         life: 3000,
       });
   
       // Atualiza lista local
-      const updatedUsers = users.map((u) => (u.id === user.id ? data : u));
-      setUsers(updatedUsers);
-      setUser(data);
-      setEditUserDialog(false);
-      setUser(emptyUser);
+      const updatedTransports = transports.map((u) => (u.id === transport.id ? data : u));
+      setTransports(updatedTransports);
+      setTransport(data);
+      setEditTransportDialog(false);
+      setTransport(emptyTransport);
   
     } catch (err) {
-      console.error('Erro ao editar usuário:', err);
+      console.error('Erro ao editar transporte:', err);
       toast.current?.show({
         severity: 'error',
         summary: 'Erro',
-        detail: 'Erro inesperado ao editar usuário.',
+        detail: 'Erro inesperado ao editar transporte.',
         life: 3000,
       });
     }
   };
   
-  // Deleta o usuario
-  const deleteUser = async () => {
-    if (!user.id) return;
+  // Deleta o transporte
+  const deleteTransport = async () => {
+    if (!transport.id) return;
     setLoading(true);
     try {
-      const res = await fetch(`/api/users/${user.id}`, {
+      const res = await fetch(`/api/transport/${transport.id}`, {
         method: 'DELETE',
         headers: {
           'Content-Type': 'application/json',
@@ -263,7 +249,7 @@ const TransportPage = () => {
         toast.current?.show({
           severity: 'error',
           summary: 'Erro',
-          detail: data.error || 'Erro ao Excluir o usuário.',
+          detail: data.error || 'Erro ao Excluir o transporte.',
           life: 3000,
         });
         return;
@@ -272,54 +258,55 @@ const TransportPage = () => {
       toast.current?.show({
         severity: 'success',
         summary: 'Sucesso',
-        detail: 'Usuário excluido com sucesso.',
+        detail: 'transporte excluido com sucesso.',
         life: 3000,
       });
   
       // Atualiza lista local
-      const updatedUsers = users.map((u) => (u.id === user.id ? data : u));
-      setUsers(updatedUsers);
-      setUser(data);
-      setSelectedUsers(null);
-      setDeleteUserDialog(false);
-      fetchUsers()
-      setUser(emptyUser);
+      const updatedTransports = transports.map((u) => (u.id === transport.id ? data : u));
+      setTransports(updatedTransports);
+      setTransport(data);
+      setSelectedTransports(null);
+      setDeleteTransportDialog(false);
+      fetchTransports()
+      setTransport(emptyTransport);
       setLoading(false)
   
     } catch (err) {
-      console.error('Erro ao excluir usuário:', err);
+      console.error('Erro ao excluir Transporte:', err);
       toast.current?.show({
         severity: 'error',
         summary: 'Erro',
-        detail: 'Erro inesperado ao excluir usuário.',
+        detail: 'Erro inesperado ao excluir Transporte.',
         life: 3000,
       });
     }
   };
 
 
-  // Confirma a exclusão do usuario
-  const confirmDeleteProduct = (user: User) => {
-    setUser(user);
-    setDeleteUserDialog(true);
+  // Confirma a exclusão do transporte
+  const confirmDeleteProduct = (transport: Transport) => {
+    setTransport(transport);
+    setDeleteTransportDialog(true);
   };
 
-  const findIndexById = (id: string) => users.findIndex((u) => u.id === id);
+  const findIndexById = (id: number) => transports.findIndex((u) => u.id === id);
 
   const onInputChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
     name: string
   ) => {
     const val = (e.target && e.target.value) || '';
-    setUser({ ...user, [name]: val });
+    setTransport({ ...transport, [name]: val });
   };
 
 
-  const nameBodyTemplate = (rowData: User) => <span>{rowData.name}</span>;
-  const emailBodyTemplate = (rowData: User) => <span>{rowData.email}</span>;
-  const roleBodyTemplate = (rowData: User) => <span>{rowData.role}</span>;
+  const nameBodyTemplate = (rowData: Transport) => <span>{rowData.name}</span>;
+  const calculateKMBodyTemplate = (rowData: Transport) => {
+    return rowData.calculateKM ? 'Sim' : 'Não';
+  };
 
-  const statusBodyTemplate = (rowData: User) => (
+  const statusBodyTemplate = (rowData: Transport) => (
       <>
         {rowData.status === 1 ? (
           <span className="product-badge status-available">Ativo</span>
@@ -329,7 +316,7 @@ const TransportPage = () => {
       </>
   );
 
-  const actionBodyTemplate = (rowData: User) => (
+  const actionBodyTemplate = (rowData: Transport) => (
     <>
       <Button
         icon="pi pi-pencil"
@@ -349,14 +336,14 @@ const TransportPage = () => {
 
   const leftToolbarTemplate = () => (
     <div className="my-2">
-      <Button label="Novo Usuário" icon="pi pi-plus" severity="success" className="mr-2" onClick={openNew} />
+      <Button label="Novo Transporte" icon="pi pi-plus" severity="success" className="mr-2" onClick={openNew} />
     </div>
   );
 
 
   const header = (
     <div className="flex flex-column md:flex-row md:justify-content-between md:align-items-center">
-      <h5 className="m-0">Cadastro de Usuários</h5>
+      <h5 className="m-0">Cadastro de Transportes</h5>
       {/* <span className="block mt-2 md:mt-0 p-input-icon-left">
         <i className="pi pi-search" />
         <InputText
@@ -368,24 +355,24 @@ const TransportPage = () => {
     </div>
   );
 
-  const UserDialogFooter = (
+  const TransportDialogFooter = (
     <>
       <Button label="Cancelar" icon="pi pi-times" text onClick={hideDialog} />
-      <Button label="Salvar" icon="pi pi-check" text onClick={saveUser} />
+      <Button label="Salvar" icon="pi pi-check" text onClick={saveTransport} />
     </>
   );
 
-  const editUserDialogFooter = (
+  const editTransportDialogFooter = (
     <>
       <Button label="Cancelar" icon="pi pi-times" text onClick={hideEditUserDialog} />
-      <Button label="Salvar" icon="pi pi-check" text onClick={editUser} />
+      <Button label="Salvar" icon="pi pi-check" text onClick={editTransport} />
     </>
   );
 
-  const deleteUserDialogFooter = (
+  const deleteTransportDialogFooter = (
     <>
       <Button label="Não" icon="pi pi-times" text onClick={hideDeleteProductDialog} />
-      <Button label="Sim" icon="pi pi-check" text onClick={deleteUser} />
+      <Button label="Sim" icon="pi pi-check" text onClick={deleteTransport} />
     </>
   );
 
@@ -409,114 +396,80 @@ const TransportPage = () => {
           ) : (
             <DataTable
               ref={dt}
-              value={users}
-              selection={selectedUsers}
-              onSelectionChange={(e) => setSelectedUsers(e.value as any)}
+              value={transports}
+              selection={selectedTransports}
+              onSelectionChange={(e) => setSelectedTransports(e.value as any)}
               paginator
               rows={5}
               rowsPerPageOptions={[5, 10, 25]}
               className="datatable-responsive"
               paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport RowsPerPageDropdown"
-              currentPageReportTemplate="Mostrando {first} até {last} de {totalRecords} usuários"
-              emptyMessage="Nenhum usuário encontrado."
+              currentPageReportTemplate="Mostrando {first} até {last} de {totalRecords} transportes"
+              emptyMessage="Nenhum transporte encontrado."
               header={header}
               responsiveLayout="scroll"
             >
               <Column field="name" header="Nome" sortable body={nameBodyTemplate} headerStyle={{ minWidth: '15rem' }} />
-              <Column field="email" header="E-mail" sortable body={emailBodyTemplate} headerStyle={{ minWidth: '15rem' }} />
-              <Column field="role" header="Permissão" body={roleBodyTemplate} sortable />
+              <Column field="calculateKM" header="Calcula KM?" sortable body={calculateKMBodyTemplate} headerStyle={{ minWidth: '15rem' }} />
               <Column field="status" header="Status" body={statusBodyTemplate} sortable headerStyle={{ minWidth: '10rem' }} />
               <Column body={actionBodyTemplate} header="Ações" headerStyle={{ minWidth: '10rem' }} />
             </DataTable>
           )}
 
-          <Dialog visible={userDialog} style={{ width: '450px' }} header="Novo Usuário" modal className="p-fluid" footer={UserDialogFooter} onHide={hideDialog}>
+          <Dialog visible={transportDialog} style={{ width: '450px' }} header="Novo Transporte" modal className="p-fluid" footer={TransportDialogFooter} onHide={hideDialog}>
             <div className="field">
               <label htmlFor="name">Nome</label>
               <InputText
                 id="name"
-                value={user.name}
+                value={transport.name}
                 onChange={(e) => onInputChange(e, 'name')}
                 required
                 autoFocus
-                className={classNames({ 'p-invalid': submitted && !user.name })}
+                className={classNames({ 'p-invalid': submitted && !transport.name })}
               />
-              {submitted && !user.name && <small className="p-invalid">O nome é obrigatório</small>}
+              {submitted && !transport.name && <small className="p-invalid">O nome é obrigatório</small>}
             </div>
-            <div className="field">
-              <label htmlFor="email">E-mail</label>
-              <InputText
-                id="email"
-                value={user.email}
-                onChange={(e) => onInputChange(e, 'email')}
-                required
-                className={classNames({ 'p-invalid': submitted && !user.email })}
-              />
-              {submitted && !user.email && <small className="p-invalid">O e-mail é obrigatório</small>}
-            </div>
-            <div className="field">
-              <label htmlFor="password">Senha do Usuário</label>
-              <InputText
-                id="password"
-                value={user.password}
-                onChange={(e) => onInputChange(e, 'password')}
-                required
-                className={classNames({ 'p-invalid': submitted && !user.password })}
-              />
-              {submitted && !user.password && <small className="p-invalid">O usuário é obrigatório</small>}
-            </div>
-            <div className="field">
-              <label htmlFor="role">Permissão</label>
-              <Dropdown 
-                value={user.role} 
-                onChange={(e) => setUser({ ...user, role: e.value })} 
-                options={['Administrador', 'UsuarioPadrao']} 
-                placeholder="Selecione" className="w-full md:w-14rem" 
-              />
-              {submitted && !user.role && <small className="p-invalid">O usuário é obrigatório</small>}
+            <div className="field flex items-center gap-2">
+              <label htmlFor="calculateKM">Calcular KM?</label>
+              <Checkbox 
+              id='calculateKM'
+              onChange={e => setTransport({ ...transport, calculateKM: e.checked ?? false })}
+              checked={transport.calculateKM}
+              >
+              
+              </Checkbox>
             </div>
           </Dialog>
 
-          <Dialog visible={editUserDialog} style={{ width: '450px' }} header="Editar Usuário" modal className="p-fluid" footer={editUserDialogFooter} onHide={hideEditUserDialog}>
+          <Dialog visible={editTransportDialog} style={{ width: '450px' }} header="Editar Transporte" modal className="p-fluid" footer={editTransportDialogFooter} onHide={hideEditUserDialog}>
             <div className="field">
                 <label htmlFor="name">Nome</label>
                 <InputText
                   id="name"
-                  value={user.name}
+                  value={transport.name}
                   onChange={(e) => onInputChange(e, 'name')}
                   required
                   autoFocus
-                  className={classNames({ 'p-invalid': submitted && !user.name })}
+                  className={classNames({ 'p-invalid': submitted && !transport.name })}
                 />
-                {submitted && !user.name && <small className="p-invalid">O nome é obrigatório</small>}
+                {submitted && !transport.name && <small className="p-invalid">O nome é obrigatório</small>}
               </div>
-              <div className="field">
-                <label htmlFor="email">E-mail</label>
-                <InputText
-                  id="email"
-                  value={user.email}
-                  onChange={(e) => onInputChange(e, 'email')}
-                  required
-                  className={classNames({ 'p-invalid': submitted && !user.email })}
-                />
-                {submitted && !user.email && <small className="p-invalid">O e-mail é obrigatório</small>}
-              </div>
-              <div className="field">
-                <label htmlFor="role">Permissão</label>
-                <Dropdown 
-                  value={user.role} 
-                  onChange={(e) => setUser({ ...user, role: e.value })} 
-                  options={['Administrador', 'UsuarioPadrao']} 
-                  placeholder="Selecione" className="w-full md:w-14rem" 
-                />
-                {submitted && !user.role && <small className="p-invalid">a permissão é obrigatório</small>}
+              <div className="field flex items-center gap-2">
+                <label htmlFor="calculateKM">Calcular KM?</label>
+                <Checkbox 
+                id='calculateKM'
+                onChange={e => setTransport({ ...transport, calculateKM: e.checked ?? false })}
+                checked={transport.calculateKM}
+                >
+                
+                </Checkbox>
               </div>
           </Dialog>
 
-          <Dialog visible={deleteUserDialog} style={{ width: '450px' }} header="Confirmar" modal footer={deleteUserDialogFooter} onHide={hideDeleteProductDialog}>
+          <Dialog visible={deleteTransportDialog} style={{ width: '450px' }} header="Confirmar" modal footer={deleteTransportDialogFooter} onHide={hideDeleteProductDialog}>
             <div className="confirmation-content">
               <i className="pi pi-exclamation-triangle mr-3" />
-              {user && <span>Tem certeza que deseja excluir <b>{user.name}</b>?</span>}
+              {transport && <span>Tem certeza que deseja excluir <b>{transport.name}</b>?</span>}
             </div>
           </Dialog>
 

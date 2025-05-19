@@ -28,9 +28,14 @@ const AppMenu = () => {
         ...(isAdmin
             ? [
                 {
-                    label: 'Configurações',
-                    items: [{ label: 'Usuarios', icon: 'pi pi-fw pi-cog', to: '/users' }]
-                }
+                    label: 'Administração',
+                    items: [
+                        { label: 'Usuarios', icon: 'pi pi-fw pi-cog', to: '/users' },
+                        { label: 'Transportes', icon: 'pi pi-fw pi-car', to: '/transport' },
+                        
+                    ]
+                },
+                
             ]
             : [])
         

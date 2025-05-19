@@ -6,7 +6,7 @@ import { z } from 'zod'
 import { verifyAuthHeaderFromAuthorization, verifyAuthHeader } from '@/app/api/lib/auth'
 
 
-// Validação do formulário para criação de usuário
+// Validação do formulário para criação de Transporte
 const transportSchema = z.object({
   name: z.string().min(1, 'Nome do transporte obrigatório'),
   calculateKM: z.boolean(),
@@ -16,18 +16,18 @@ export async function POST(req: NextRequest) {
   try {
 
     // Valida o token de autenticação
-    // const authenticatedUser = await verifyAuthHeader()
+    const authenticatedUser = await verifyAuthHeader()
 
-    // if (!authenticatedUser) {
-    //   return NextResponse.json({ error: 'Não autorizado' }, { status: 401 })
-    // }
+    if (!authenticatedUser) {
+      return NextResponse.json({ error: 'Não autorizado' }, { status: 401 })
+    }
 
-    // // Valida se o usuário é um administrador
-    // if (authenticatedUser.role !== 'Administrador') {
-    //   return NextResponse.json({ error: 'Acesso restrito a administradores' }, { status: 403 })
-    // }
+    // Valida se o usuário é um administrador
+    if (authenticatedUser.role !== 'Administrador') {
+      return NextResponse.json({ error: 'Acesso restrito a administradores' }, { status: 403 })
+    }
 
-    //Valida os dados do usuário
+    //Valida os dados do transporte
     const body = await req.json()
     const parsed = transportSchema.safeParse(body)
 
@@ -42,10 +42,10 @@ export async function POST(req: NextRequest) {
     // Verifica se o transport já existe
     const existingTransport = await prisma.transports.findUnique({ where: { name } })
     if (existingTransport) {
-      return NextResponse.json({ error: 'Transporte já cadastrado' }, { status: 400 })
+      return NextResponse.json({ message: 'Transporte já cadastrado' }, { status: 400 })
     }
 
-    // Cria o usuário
+    // Cria o transport
     const transport = await prisma.transports.create({
       data: {
         name,
@@ -71,16 +71,16 @@ export async function POST(req: NextRequest) {
 export async function GET(req: NextRequest) { 
   try {
     // Valida o token de autenticação
-    // const authenticatedUser = await verifyAuthHeader()
+    const authenticatedUser = await verifyAuthHeader()
 
-    // if (!authenticatedUser) {
-    //   return NextResponse.json({ error: 'Não autorizado' }, { status: 401 })
-    // }
+    if (!authenticatedUser) {
+      return NextResponse.json({ error: 'Não autorizado' }, { status: 401 })
+    }
     
-    // // Valida se o usuário é um administrador
-    // if (authenticatedUser.role !== 'Administrador') {
-    //   return NextResponse.json({ error: 'Acesso restrito a administradores' }, { status: 403 })
-    // }
+    // Valida se o usuário é um administrador
+    if (authenticatedUser.role !== 'Administrador') {
+      return NextResponse.json({ error: 'Acesso restrito a administradores' }, { status: 403 })
+    }
 
 
     const transports = await prisma.transports.findMany({

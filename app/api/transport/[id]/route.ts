@@ -22,19 +22,19 @@ export async function PATCH(req: NextRequest, {params}: {params: Promise<{ id: s
   }
 
   // Valida o token de autenticação
-  // const authenticatedUser = await verifyAuthHeader()
+  const authenticatedUser = await verifyAuthHeader()
 
-  // if (!authenticatedUser) {
-  //   return NextResponse.json({ error: 'Não autorizado' }, { status: 401 })
-  // }
+  if (!authenticatedUser) {
+    return NextResponse.json({ error: 'Não autorizado' }, { status: 401 })
+  }
   
-  // // Valida se o usuário é um administrador
-  // if (authenticatedUser.role !== 'Administrador') {
-  //   return NextResponse.json({ error: 'Acesso restrito a administradores' }, { status: 403 })
-  // }
+  // Valida se o usuário é um administrador
+  if (authenticatedUser.role !== 'Administrador') {
+    return NextResponse.json({ error: 'Acesso restrito a administradores' }, { status: 403 })
+  }
 
 
-  // validação do formulário para atualização de usuário
+  // validação do formulário para atualização de transporte
   const body = await req.json()
   const parsed = updateSchema.safeParse(body)
 
@@ -84,15 +84,15 @@ export async function GET(req: NextRequest, {params}: {params: Promise<{ id: str
     return NextResponse.json({ error: 'ID inválido.' }, { status: 400 });
   }
 
-  // const authenticatedUser = await verifyAuthHeader()
+  const authenticatedUser = await verifyAuthHeader()
 
-  // if (!authenticatedUser) {
-  //   return NextResponse.json({ error: 'Não autorizado' }, { status: 401 })
-  // }
+  if (!authenticatedUser) {
+    return NextResponse.json({ error: 'Não autorizado' }, { status: 401 })
+  }
 
-  // if (authenticatedUser.role !== 'Administrador') {
-  //   return NextResponse.json({ error: 'Acesso restrito a administradores' }, { status: 403 })
-  // }
+  if (authenticatedUser.role !== 'Administrador') {
+    return NextResponse.json({ error: 'Acesso restrito a administradores' }, { status: 403 })
+  }
 
   try {
     const transport = await prisma.transports.findUnique({
@@ -130,16 +130,16 @@ export async function DELETE(req: NextRequest, {params}: {params: Promise<{ id: 
   }
 
   // Valida o token de autenticação
-  // const authenticatedUser = await verifyAuthHeader()
+  const authenticatedUser = await verifyAuthHeader()
 
-  // if (!authenticatedUser) {
-  //   return NextResponse.json({ error: 'Não autorizado' }, { status: 401 })
-  // }
+  if (!authenticatedUser) {
+    return NextResponse.json({ error: 'Não autorizado' }, { status: 401 })
+  }
   
-  // // Valida se o usuário é um administrador
-  // if (authenticatedUser.role !== 'Administrador') {
-  //   return NextResponse.json({ error: 'Acesso restrito a administradores' }, { status: 403 })
-  // }
+  // Valida se o usuário é um administrador
+  if (authenticatedUser.role !== 'Administrador') {
+    return NextResponse.json({ error: 'Acesso restrito a administradores' }, { status: 403 })
+  }
 
   try {
 
