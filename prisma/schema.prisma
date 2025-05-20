@@ -53,5 +53,13 @@ model expenses {
   status Int @default(1)
 }
 
+model parameters_km {
+  id Int @id @default(autoincrement())
+  value Float
+  startDate DateTime
+  endDate DateTime
+  createdAt DateTime @default(now())
+}
+
 
 
