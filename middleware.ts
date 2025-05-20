@@ -9,6 +9,8 @@ const publicRoutes = [
 
 const adminRoutes = [
   {path: '/users', whenAuthenticated: 'next'},
+  {path: '/expenses', whenAuthenticated: 'next'},
+  {path: '/transport', whenAuthenticated: 'next'},
 ] as const
 
 type JwtPayload = {

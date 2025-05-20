@@ -32,6 +32,7 @@ const AppMenu = () => {
                     items: [
                         { label: 'Usuarios', icon: 'pi pi-fw pi-cog', to: '/users' },
                         { label: 'Transportes', icon: 'pi pi-fw pi-car', to: '/transport' },
+                        { label: 'Despesas', icon: 'pi pi-fw pi-tags', to: '/expenses' },
                         
                     ]
                 },

@@ -47,5 +47,11 @@ model transports {
   status Int @default(1)
 }
 
+model expenses {
+  id Int @id @default(autoincrement())
+  name String @unique
+  status Int @default(1)
+}
+
 
 
