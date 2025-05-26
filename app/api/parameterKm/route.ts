@@ -10,8 +10,14 @@ import { start } from 'repl'
 // Validação do formulário para criação de Parametro
 const parameterSchema = z.object({
   value: z.number().min(0, { message: 'O valor deve ser maior que 0' }),
-  startDate: z.string().min(1, { message: 'Data de início é obrigatória' }),
-  endDate: z.string().min(1, { message: 'Data de término é obrigatória' }),
+  startDate: z.string().transform((val) => {
+    const [year, month, day] = val.split('-').map(Number);
+    return new Date(year, month - 1, day); // mês começa em 0
+  }),
+  endDate: z.string().transform((val) => {
+    const [year, month, day] = val.split('-').map(Number);
+    return new Date(year, month - 1, day);
+  }),
 })
 
 // Exemplo de requisição para criar um parâmetro
@@ -36,6 +42,7 @@ export async function POST(req: NextRequest) {
 
     //Valida os dados do parametro
     const body = await req.json()
+
     const parsed = parameterSchema.safeParse(body)
 
     // Se a validação falhar, retorna os erros
@@ -46,19 +53,16 @@ export async function POST(req: NextRequest) {
     // Se a validação for bem-sucedida, extrai os dados
     const { value, startDate, endDate } = parsed.data
 
-    const start = new Date(startDate)
-    const end = new Date(endDate)
-
     // Valida sobreposição de período
     const overlappingParameter = await prisma.parameters_km.findFirst({
       where: {
         OR: [
           {
             startDate: {
-              lte: end,
+              lte: endDate,
             },
             endDate: {
-              gte: start,
+              gte: startDate,
             },
           },
         ],
@@ -76,8 +80,8 @@ export async function POST(req: NextRequest) {
     const parameter = await prisma.parameters_km.create({
       data: {
         value,
-        startDate: start,
-        endDate: end,
+        startDate,
+        endDate,
       },
       select: {
         id: true,

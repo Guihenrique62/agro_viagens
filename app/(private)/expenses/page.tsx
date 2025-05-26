@@ -1,5 +1,6 @@
 /* eslint-disable @next/next/no-img-element */
 'use client';
+import { FilterMatchMode } from 'primereact/api';
 import { Button } from 'primereact/button';
 import { Checkbox } from 'primereact/checkbox';
 import { Column } from 'primereact/column';
@@ -43,6 +44,10 @@ const ExpensesPage = () => {
   const toast = useRef<Toast>(null);
   const dt = useRef<DataTable<any>>(null);
   const [loading, setLoading] = useState(false);
+
+  const [filters, setFilters] = useState({
+    global: { value: '', matchMode: FilterMatchMode.CONTAINS }
+  });
 
   // BUsca a lista de despesas
   const fetchExpenses = async () => {
@@ -334,18 +339,28 @@ const ExpensesPage = () => {
     </div>
   );
 
+  const onGlobalFilterChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const value = e.target.value;
+        let _filters = { ...filters };
+      
+        _filters['global'].value = value;
+      
+        setFilters(_filters);
+      };
+
 
   const header = (
     <div className="flex flex-column md:flex-row md:justify-content-between md:align-items-center">
       <h5 className="m-0">Cadastro de Despesas</h5>
-      {/* <span className="block mt-2 md:mt-0 p-input-icon-left">
-        <i className="pi pi-search" />
-        <InputText
-          type="search"
-          onInput={(e) => setGlobalFilter(e.currentTarget.value)}
-          placeholder="Buscar..."
-        />
-      </span> */}
+      <span className="block mt-2 md:mt-0 p-input-icon-left">
+              <i className="pi pi-search" />
+              <InputText
+                type="search"
+                value={filters.global.value}
+                onChange={onGlobalFilterChange}
+                placeholder="Buscar..."
+              />
+            </span>
     </div>
   );
 
@@ -402,6 +417,9 @@ const ExpensesPage = () => {
               emptyMessage="Nenhuma despesa encontrada."
               header={header}
               responsiveLayout="scroll"
+              filters={filters}
+              filterDisplay="row"
+              globalFilterFields={['name']}
             >
               <Column field="name" header="Nome" sortable body={nameBodyTemplate} headerStyle={{ minWidth: '15rem' }} />
               <Column field="status" header="Status" body={statusBodyTemplate} sortable headerStyle={{ minWidth: '10rem' }} />

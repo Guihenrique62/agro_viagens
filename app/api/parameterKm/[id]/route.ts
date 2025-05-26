@@ -5,8 +5,14 @@ import { verifyAuthHeader } from '../../lib/auth'
 
 const updateSchema = z.object({
   value: z.number().min(0, { message: 'O valor deve ser maior que 0' }),
-  startDate: z.string().min(1, { message: 'Data de início é obrigatória' }),
-  endDate: z.string().min(1, { message: 'Data de término é obrigatória' }),
+  startDate: z.string().transform((val) => {
+  const [year, month, day] = val.split('-').map(Number);
+  return new Date(year, month - 1, day); // mês começa em 0
+  }),
+  endDate: z.string().transform((val) => {
+    const [year, month, day] = val.split('-').map(Number);
+    return new Date(year, month - 1, day);
+  }),
 })
 
 export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
@@ -36,9 +42,6 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
   // Se a validação for bem-sucedida, extrai os dados
   const { value, startDate, endDate } = parsed.data;
 
-  const start = new Date(startDate);
-  const end = new Date(endDate);
-
   try {
     // Verifica se há sobreposição com outros parâmetros (excluindo o próprio)
     const overlapping = await prisma.parameters_km.findFirst({
@@ -49,10 +52,10 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
         OR: [
           {
             startDate: {
-              lte: end,
+              lte: endDate,
             },
             endDate: {
-              gte: start,
+              gte: startDate,
             },
           }
         ],
@@ -71,8 +74,8 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
       where: { id: numericId },
       data: {
         value,
-        startDate: start,
-        endDate: end,
+        startDate,
+        endDate,
       },
       select: {
         id: true,
