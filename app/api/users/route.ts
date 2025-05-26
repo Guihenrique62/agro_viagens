@@ -3,7 +3,7 @@ import { prisma } from '@/app/api/lib/prisma'
 import bcrypt from 'bcrypt'
 import { z } from 'zod'
 
-import { verifyAuthHeaderFromAuthorization, verifyAuthHeader } from '@/app/api/lib/auth'
+import { verifyAuthHeader } from '@/app/api/lib/auth'
 
 
 // Validação do formulário para criação de usuário

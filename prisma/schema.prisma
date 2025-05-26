@@ -24,6 +24,7 @@ model Users {
   mustChangePassword Boolean  @default(true)
   
   passwordResets passwordReset[]
+  trips trips[]
 }
 
 enum Role {
@@ -45,13 +46,19 @@ model transports {
   name String @unique
   calculateKM Boolean
   status Int @default(1)
+
+  trip_transports trip_transports[]
+  
 }
 
 model expenses {
   id Int @id @default(autoincrement())
   name String @unique
   status Int @default(1)
+
+  trip_expenses trip_expenses[]
 }
+
 
 model parameters_km {
   id Int @id @default(autoincrement())
@@ -59,7 +66,70 @@ model parameters_km {
   startDate DateTime
   endDate DateTime
   createdAt DateTime @default(now())
+
+  trips trips[]
 }
 
+enum TripStatus {
+  EmAndamento
+  Finalizada
+  Cancelada
+}
+
+model trips {
+  id Int @id @default(autoincrement())
+  userId String @db.Uuid
+  destination String
+  client String
+  reason String
+  escort String?
+  type String
+  advance_value Float
+  startDate DateTime
+  endDate DateTime
+  status TripStatus @default(EmAndamento)
+  expensesId Int
+  parameters_kmId Int
+
+  
+  user Users @relation(fields: [userId], references: [id])
+  parameters_km parameters_km @relation(fields: [parameters_kmId], references: [id])
+
+  trip_transports trip_transports[]
+  trip_expenses trip_expenses[]
+
+}
+
+model trip_transports {
+  id Int @id @default(autoincrement())
+  createdAt DateTime @default(now())
+  tripId Int
+  transportId Int
+
+  trip trips @relation(fields: [tripId], references: [id], onDelete: Cascade)
+  transport transports @relation(fields: [transportId], references: [id])
+
+  @@unique([tripId, transportId])
+}
+
+
+model trip_expenses {
+  id Int @id @default(autoincrement())
+  typePayment String
+  value Float
+  date DateTime 
+  taxDocument String
+  observation String 
+  createdAt DateTime @default(now())
+  proof String
+
+  expensesId Int
+  tripId Int
+
+  expenses expenses @relation(fields: [expensesId], references: [id], onDelete: Cascade)
+  trip trips @relation(fields: [tripId], references: [id], onDelete: Cascade)
+
+  @@unique([tripId, expensesId])
+}
 
 
