@@ -122,7 +122,18 @@ export async function DELETE(req: NextRequest, {params}: {params: Promise<{ id: 
     return NextResponse.json({ error: 'Acesso restrito a administradores' }, { status: 403 })
   }
 
+  const referenced = await prisma.trips.findFirst({
+    where: { parameters_kmId: numericId }
+  });
+
+  if (referenced) {
+    return NextResponse.json({
+      error: 'Este parâmetro está em uso e não pode ser deletado.'
+    }, { status: 400 });
+  }
+
   try {
+    
 
     // Deleta o parametro pelo ID
     await prisma.parameters_km.delete({ where: { id: numericId } })

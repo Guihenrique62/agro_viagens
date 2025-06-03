@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/app/api/lib/prisma'
 import { z } from 'zod'
-import { verifyAuthHeaderFromAuthorization } from '@/app/api/lib/auth'
+import { verifyAuthHeader, verifyAuthHeaderFromAuthorization } from '@/app/api/lib/auth'
 
 // Schema de validação para update
 const updateTripSchema = z.object({
@@ -17,7 +17,6 @@ const updateTripSchema = z.object({
   endDate: z.string().refine((date) => !isNaN(Date.parse(date)), {
     message: 'Data de fim inválida',
   }),
-  expensesId: z.number().int('ID de despesa inválido'),
   parameters_kmId: z.number().int('ID de parâmetros de KM inválido'),
   transportIds: z.array(z.number().int('ID de transporte inválido')).min(1, 'Selecione ao menos um transporte')
 })
@@ -27,7 +26,7 @@ export async function PATCH(req: NextRequest, {params}: {params: Promise<{ id: s
   const { id } = await params;
 
   try {
-    const authenticatedUser = await verifyAuthHeaderFromAuthorization(req.headers.get('Authorization'))
+    const authenticatedUser = await verifyAuthHeader()
 
     if (!authenticatedUser) {
       return NextResponse.json({ error: 'Não autorizado' }, { status: 401 })
@@ -54,7 +53,6 @@ export async function PATCH(req: NextRequest, {params}: {params: Promise<{ id: s
       advance_value,
       startDate,
       endDate,
-      expensesId,
       parameters_kmId,
       transportIds
     } = parsed.data
@@ -65,15 +63,11 @@ export async function PATCH(req: NextRequest, {params}: {params: Promise<{ id: s
       return NextResponse.json({ error: 'Viagem não encontrada.' }, { status: 404 })
     }
 
-    const [existingExpense, existingParametersKm, existingTransports] = await Promise.all([
-      prisma.expenses.findUnique({ where: { id: expensesId } }),
+    const [existingParametersKm, existingTransports] = await Promise.all([
       prisma.parameters_km.findUnique({ where: { id: parameters_kmId } }),
       prisma.transports.findMany({ where: { id: { in: transportIds } } })
     ])
 
-    if (!existingExpense) {
-      return NextResponse.json({ error: 'Despesa não encontrada.' }, { status: 404 })
-    }
 
     if (!existingParametersKm) {
       return NextResponse.json({ error: 'Parâmetros de KM não encontrados.' }, { status: 404 })
@@ -95,7 +89,6 @@ export async function PATCH(req: NextRequest, {params}: {params: Promise<{ id: s
         advance_value,
         startDate: new Date(startDate),
         endDate: new Date(endDate),
-        expensesId,
         parameters_kmId
       }
     })
@@ -122,7 +115,7 @@ export async function DELETE(req: NextRequest, { params }: { params: Promise<{ i
   const { id } = await params
 
   try {
-    const authenticatedUser = await verifyAuthHeaderFromAuthorization(req.headers.get('Authorization'))
+    const authenticatedUser = await verifyAuthHeader()
 
     if (!authenticatedUser) {
       return NextResponse.json({ error: 'Não autorizado' }, { status: 401 })

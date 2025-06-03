@@ -12,18 +12,17 @@ const parameterSchema = z.object({
   value: z.number().min(0, { message: 'O valor deve ser maior que 0' }),
   startDate: z.string().transform((val) => {
     const [year, month, day] = val.split('-').map(Number);
-    return new Date(year, month - 1, day); // mês começa em 0
+    return new Date(year, month - 1, day);
   }),
   endDate: z.string().transform((val) => {
     const [year, month, day] = val.split('-').map(Number);
     return new Date(year, month - 1, day);
   }),
-})
+}).refine((data) => data.startDate <= data.endDate, {
+  message: 'A data inicial deve ser menor ou igual à data final',
+  path: ['endDate'],
+});
 
-// Exemplo de requisição para criar um parâmetro
-//   "value": 10,
-//   "startDate": "2025-06-01",
-//   "endDate": "2025-06-30"
 
 export async function POST(req: NextRequest) {
   try {

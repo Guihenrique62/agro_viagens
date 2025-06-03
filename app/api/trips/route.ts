@@ -17,14 +17,13 @@ const tripSchema = z.object({
   endDate: z.string().refine((date) => !isNaN(Date.parse(date)), {
     message: 'Data de fim inválida',
   }),
-  expensesId: z.number().int('ID de despesa inválido'),
   parameters_kmId: z.number().int('ID de parâmetros de KM inválido'),
   transportIds: z.array(z.number().int('ID de transporte inválido')).min(1, 'Selecione ao menos um transporte')
 })
 
 export async function POST(req: NextRequest) {
   try {
-    const authenticatedUser = await verifyAuthHeaderFromAuthorization(req.headers.get('Authorization'))
+    const authenticatedUser = await verifyAuthHeader()
 
     if (!authenticatedUser) {
       return NextResponse.json({ error: 'Não autorizado' }, { status: 401 })
@@ -46,16 +45,10 @@ export async function POST(req: NextRequest) {
       advance_value,
       startDate,
       endDate,
-      expensesId,
       parameters_kmId,
       transportIds 
     } = parsed.data
 
-    const existingExpense = await prisma.expenses.findUnique({
-      where: {
-        id: expensesId
-      }
-    })
 
     const existingParametersKm = await prisma.parameters_km.findUnique({
       where: {
@@ -71,9 +64,6 @@ export async function POST(req: NextRequest) {
       }
     })
 
-    if (!existingExpense) {
-      return NextResponse.json({ error: 'Despesa não encontrada.' }, { status: 404 })
-    }
 
     if (!existingParametersKm) {
       return NextResponse.json({ error: 'Parâmetros de KM não encontrados.' }, { status: 404 })
@@ -95,7 +85,6 @@ export async function POST(req: NextRequest) {
         startDate: new Date(startDate),
         endDate: new Date(endDate),
         userId: authenticatedUser.userId,
-        expensesId,
         parameters_kmId,
         status: 'EmAndamento'
       }
@@ -120,7 +109,7 @@ export async function POST(req: NextRequest) {
 
 export async function GET(req: NextRequest) {
   try {
-    const authenticatedUser = await verifyAuthHeaderFromAuthorization(req.headers.get('Authorization'))
+    const authenticatedUser = await verifyAuthHeader()
 
     if (!authenticatedUser) {
       return NextResponse.json({ error: 'Não autorizado' }, { status: 401 })
