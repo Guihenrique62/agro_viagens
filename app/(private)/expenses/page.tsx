@@ -2,23 +2,23 @@
 'use client';
 import { FilterMatchMode } from 'primereact/api';
 import { Button } from 'primereact/button';
-import { Checkbox } from 'primereact/checkbox';
-import { Column } from 'primereact/column';
 import { DataTable } from 'primereact/datatable';
 import { Dialog } from 'primereact/dialog';
-import { Dropdown } from 'primereact/dropdown';
 import { InputText } from 'primereact/inputtext';
-import { ProgressSpinner } from 'primereact/progressspinner';
 import { Toast } from 'primereact/toast';
 import { Toolbar } from 'primereact/toolbar';
-import { classNames } from 'primereact/utils';
 import React, { useEffect, useRef, useState } from 'react';
+import { getExpenses } from './untils/getExpenses';
+import { Expense } from './expenses.types';
+import { saveExpense } from './untils/saveExpense';
+import { editExpense } from './untils/editExpense';
+import { deleteExpense } from './untils/deleteExpense';
+import { ExpenseDialog } from './components/ExpenseDialog/ExpenseDialog';
 
-interface Expense {
-  id: number;
-  name: string;
-  status: number;
-}
+import { ExpenseDialogEdit } from './components/ExpenseDialogEdit/ExpenseDialogEdit';
+import ExpenseTable from './components/ExpenseTable/ExpenseTable';
+
+
 
 
 const ExpensesPage = () => {
@@ -49,39 +49,9 @@ const ExpensesPage = () => {
     global: { value: '', matchMode: FilterMatchMode.CONTAINS }
   });
 
-  // BUsca a lista de despesas
-  const fetchExpenses = async () => {
-    try {
-
-      const res = await fetch('/api/expenses', {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        credentials: 'include',
-      });
-
-      const data = await res.json();
-
-      if (!res.ok) {
-        console.error('Erro ao buscar as Despesas:', data.error);
-        toast.current?.show({
-          severity: 'error',
-          summary: 'Erro',
-          detail: 'Erro ao buscar as Despesas.',
-          life: 3000,
-        });
-        return;
-      }
-
-      setExpenses(data);
-    } catch (err) {
-      console.error('Erro inesperado:', err);
-    }
-  };
 
   useEffect(() => {
-    fetchExpenses();
+    getExpenses(toast, setExpenses);
   }, []);
 
   //Abre o dialogo de novo despesa
@@ -114,176 +84,47 @@ const ExpensesPage = () => {
   const hideDeleteProductDialog = () => setDeleteExpenseDialog(false);
 
   // Salva a despesa
-  const saveExpense = async () => {
-    setSubmitted(true);
-
-  if (expense.name.trim()) {
-    let _expenses = [...expenses];
-    let _expense = { ...expense };
-
-    if (expense.id) {
-      const index = findIndexById(expense.id);
-      _expenses[index] = _expense;
-      toast.current?.show({
-        severity: 'success',
-        summary: 'Sucesso',
-        detail: 'Despesa Atualizada',
-        life: 3000,
-      });
-      setExpenses(_expenses);
-    } else {
-      try {
-        const res = await fetch('/api/expenses', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          credentials: 'include',
-          body: JSON.stringify({
-            name: expense.name,
-
-          }),
-        });
-
-        if (!res.ok) {
-          const errorData = await res.json();
-          throw new Error(errorData.message || 'Erro ao criar Despesa');
-        }
-
-        const createdExpense = await res.json();
-        _expense.id = createdExpense.id; // assumindo que o back retorna o ID
-        _expenses.push(_expense);
-
-        toast.current?.show({
-          severity: 'success',
-          summary: 'Sucesso',
-          detail: 'Despesa Criada',
-          life: 3000,
-        });
-
-        setExpenses(_expenses);
-      } catch (err: any) {
-        console.error('Erro ao criar despesa:', err);
-        toast.current?.show({
-          severity: 'error',
-          summary: 'Erro',
-          detail: err.message || 'Erro ao criar despesa',
-          life: 3000,
-        });
-        return;
-      }
-    }
-
-    setExpenseDialog(false);
-    setExpense(emptyExpense);
-  }
-  };
+  const handleSaveExpense = () => {
+    saveExpense(
+      expense,
+      setExpenseDialog,
+      setExpense,
+      setExpenses,
+      expenses,
+      toast,
+      setSubmitted,
+      emptyExpense,
+      findIndexById
+    )
+}
 
   // Edita a Despesa
-  const editExpense = async () => {
-    if (!expense.id) return;
-  
-    try {
-      const res = await fetch(`/api/expenses/${expense.id}`, {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        credentials: 'include',
-        body: JSON.stringify({
-          name: expense.name,
-        }),
-      });
-  
-      const data = await res.json();
-  
-      if (!res.ok) {
-        toast.current?.show({
-          severity: 'error',
-          summary: 'Erro',
-          detail: data.error || 'Erro ao editar a Despesa.',
-          life: 3000,
-        });
-        return;
-      }
-  
-      toast.current?.show({
-        severity: 'success',
-        summary: 'Sucesso',
-        detail: 'Despesa atualizada com sucesso.',
-        life: 3000,
-      });
-  
-      // Atualiza lista local
-      const updatedExpenses = expenses.map((u) => (u.id === expense.id ? data : u));
-      setExpenses(updatedExpenses);
-      setExpense(data);
-      setEditExpenseDialog(false);
-      setExpense(emptyExpense);
-  
-    } catch (err) {
-      console.error('Erro ao editar Despesa:', err);
-      toast.current?.show({
-        severity: 'error',
-        summary: 'Erro',
-        detail: 'Erro inesperado ao editar Despesa.',
-        life: 3000,
-      });
-    }
-  };
+   const handleEditExpense = () => {
+     editExpense(
+      expense,
+      setEditExpenseDialog,
+      setExpense,
+      setExpenses,
+      expenses,
+      toast,
+      emptyExpense
+     )
+ }
   
   // Deleta a despesa
-  const deleteExpense = async () => {
-    if (!expense.id) return;
-    setLoading(true);
-    try {
-      const res = await fetch(`/api/expenses/${expense.id}`, {
-        method: 'DELETE',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        credentials: 'include',
-      });
-  
-      const data = await res.json();
-  
-      if (!res.ok) {
-        toast.current?.show({
-          severity: 'error',
-          summary: 'Erro',
-          detail: data.error || 'Erro ao Excluir a Despesa.',
-          life: 3000,
-        });
-        return;
-      }
-  
-      toast.current?.show({
-        severity: 'success',
-        summary: 'Sucesso',
-        detail: 'Despesa excluida com sucesso.',
-        life: 3000,
-      });
-  
-      // Atualiza lista local
-      const updatedExpenses = expenses.map((u) => (u.id === expense.id ? data : u));
-      setExpenses(updatedExpenses);
-      setExpense(data);
-      setSelectedExpenses(null);
-      setDeleteExpenseDialog(false);
-      fetchExpenses()
-      setExpense(emptyExpense);
-      setLoading(false)
-  
-    } catch (err) {
-      console.error('Erro ao excluir Despesa:', err);
-      toast.current?.show({
-        severity: 'error',
-        summary: 'Erro',
-        detail: 'Erro inesperado ao excluir Despesa.',
-        life: 3000,
-      });
-    }
-  };
+  const handleDeleteExpense = () => {
+    deleteExpense(
+      expense,
+      setDeleteExpenseDialog,
+      setExpense,
+      setExpenses,
+      expenses,
+      toast,
+      emptyExpense,
+      setSelectedExpenses,
+      setLoading
+    )
+  }
 
 
   // Confirma a exclusão do despesa
@@ -367,21 +208,21 @@ const ExpensesPage = () => {
   const expenseDialogFooter = (
     <>
       <Button label="Cancelar" icon="pi pi-times" text onClick={hideDialog} />
-      <Button label="Salvar" icon="pi pi-check" text onClick={saveExpense} />
+      <Button label="Salvar" icon="pi pi-check" text onClick={handleSaveExpense} />
     </>
   );
 
   const editExpenseDialogFooter = (
     <>
       <Button label="Cancelar" icon="pi pi-times" text onClick={hideEditUserDialog} />
-      <Button label="Salvar" icon="pi pi-check" text onClick={editExpense} />
+      <Button label="Salvar" icon="pi pi-check" text onClick={handleEditExpense} />
     </>
   );
 
   const deleteExpenseDialogFooter = (
     <>
       <Button label="Não" icon="pi pi-times" text onClick={hideDeleteProductDialog} />
-      <Button label="Sim" icon="pi pi-check" text onClick={deleteExpense} />
+      <Button label="Sim" icon="pi pi-check" text onClick={handleDeleteExpense} />
     </>
   );
 
@@ -393,71 +234,38 @@ const ExpensesPage = () => {
           
           <Toast ref={toast} />
           <Toolbar className="mb-4" left={leftToolbarTemplate}  />
-          {loading ? (
-            <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '300px' }}>
-              <ProgressSpinner
-                style={{ width: '60px', height: '60px' }}
-                strokeWidth="8"
-                fill="var(--surface-ground)"
-                animationDuration=".5s"
-              />
-            </div>
-          ) : (
-            <DataTable
-              ref={dt}
-              value={expenses}
-              selection={selectedExpenses}
-              onSelectionChange={(e) => setSelectedExpenses(e.value as any)}
-              paginator
-              rows={5}
-              rowsPerPageOptions={[5, 10, 25]}
-              className="datatable-responsive"
-              paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport RowsPerPageDropdown"
-              currentPageReportTemplate="Mostrando {first} até {last} de {totalRecords} Despesas"
-              emptyMessage="Nenhuma despesa encontrada."
-              header={header}
-              responsiveLayout="scroll"
-              filters={filters}
-              filterDisplay="row"
-              globalFilterFields={['name']}
-            >
-              <Column field="name" header="Nome" sortable body={nameBodyTemplate} headerStyle={{ minWidth: '15rem' }} />
-              <Column field="status" header="Status" body={statusBodyTemplate} sortable headerStyle={{ minWidth: '10rem' }} />
-              <Column body={actionBodyTemplate} header="Ações" headerStyle={{ minWidth: '10rem' }} />
-            </DataTable>
-          )}
+          
+          <ExpenseTable 
+            dt={dt}
+            expenses={expenses}
+            selectedExpenses={selectedExpenses}
+            setSelectedExpenses={setSelectedExpenses}
+            loading={loading}
+            header={header}
+            filters={filters}
+            nameBodyTemplate={nameBodyTemplate}
+            statusBodyTemplate={statusBodyTemplate}
+            actionBodyTemplate={actionBodyTemplate}
 
-          <Dialog visible={expenseDialog} style={{ width: '450px' }} header="Novo tipo de Despesa" modal className="p-fluid" footer={expenseDialogFooter} onHide={hideDialog}>
-            <div className="field">
-              <label htmlFor="name">Nome</label>
-              <InputText
-                id="name"
-                value={expense.name}
-                onChange={(e) => onInputChange(e, 'name')}
-                required
-                autoFocus
-                className={classNames({ 'p-invalid': submitted && !expense.name })}
-              />
-              {submitted && !expense.name && <small className="p-invalid">O nome é obrigatório</small>}
-            </div>
+          />
 
-          </Dialog>
+          <ExpenseDialog 
+            expenseDialog={expenseDialog}
+            expense={expense}
+            hideDialog={hideDialog}
+            onInputChange={onInputChange}
+            submitted={submitted}
+            expenseDialogFooter={expenseDialogFooter}
+          />
 
-          <Dialog visible={editExpenseDialog} style={{ width: '450px' }} header="Editar Despesa" modal className="p-fluid" footer={editExpenseDialogFooter} onHide={hideEditUserDialog}>
-            <div className="field">
-                <label htmlFor="name">Nome</label>
-                <InputText
-                  id="name"
-                  value={expense.name}
-                  onChange={(e) => onInputChange(e, 'name')}
-                  required
-                  autoFocus
-                  className={classNames({ 'p-invalid': submitted && !expense.name })}
-                />
-                {submitted && !expense.name && <small className="p-invalid">O nome é obrigatório</small>}
-              </div>
-              
-          </Dialog>
+          <ExpenseDialogEdit 
+            editExpenseDialog={editExpenseDialog}
+            expense={expense}
+            hideEditUserDialog={hideEditUserDialog}
+            onInputChange={onInputChange}
+            submitted={submitted}
+            editExpenseDialogFooter={editExpenseDialogFooter}
+          />
 
           <Dialog visible={deleteExpenseDialog} style={{ width: '450px' }} header="Confirmar" modal footer={deleteExpenseDialogFooter} onHide={hideDeleteProductDialog}>
             <div className="confirmation-content">

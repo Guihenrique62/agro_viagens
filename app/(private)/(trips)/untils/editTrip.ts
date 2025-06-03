@@ -1,4 +1,4 @@
-import { formatDateToISO } from "../../untils/formatDateToISO";
+import { formatDateToBR, formatDateToISO } from "../../untils/formatDateToISO";
 import { Trip } from "../trips.types";
 
 
@@ -10,12 +10,12 @@ export const editTrip = async (
   setEditTripDialog: any,
   emptyTrip: any,
   selectedTransports: any,
-  toast: any
+  toast: any,
+  setSubmitted: any
 ) => {
-    if (!trip.id) return;
-  
+  if (!trip.id) return;
+
     try {
-      console.log('Editando Viagem:', trip);
       // Buscar o parâmetro correspondente à startDate
       const paramRes = await fetch('/api/parameterKm/currentParameter', {
         method: 'POST',
@@ -24,7 +24,7 @@ export const editTrip = async (
         },
         credentials: 'include',
         body: JSON.stringify({
-          date: trip.startDate,
+          date: formatDateToBR(trip.startDate),
         }),
       });
 
@@ -35,7 +35,6 @@ export const editTrip = async (
 
       const parameter = await paramRes.json();
       const parameterId = parameter.id;
-
 
       const res = await fetch(`/api/trips/${trip.id}`, {
         method: 'PATCH',
@@ -50,8 +49,8 @@ export const editTrip = async (
           escort: trip.escort,
           type: trip.type,
           advance_value: trip.advance_value,
-          startDate: formatDateToISO(trip.startDate),
-          endDate: formatDateToISO(trip.endDate),
+          startDate: trip.startDate,
+          endDate: trip.endDate,
           status: 'EmAndamento', // ou outro valor padrão
           parameters_kmId: parameterId,
           transportIds: selectedTransports 

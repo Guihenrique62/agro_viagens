@@ -141,7 +141,8 @@ const TripsPage = () => {
       setTrip,
       emptyTrip,
       selectedTransports,
-      toast
+      toast,
+      setSubmitted
     )
 }
   
