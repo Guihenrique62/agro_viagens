@@ -2,6 +2,7 @@ import { Button } from "primereact/button";
 import { Column } from "primereact/column";
 import { DataTable } from "primereact/datatable";
 import { TripExpense } from "../../trips.types";
+import { ProgressSpinner } from "primereact/progressspinner";
 
 export default function TripExpenseTable({
   dt,
@@ -9,6 +10,7 @@ export default function TripExpenseTable({
   setShowingExpenses,
   setTripExpense,
   setDeleteTripExpenseDialog,
+  loading
 }: any) {
 
   const headerExpenses = (
@@ -56,6 +58,19 @@ export default function TripExpenseTable({
            />
          </>
        );
+
+  if (loading) {
+      return (
+        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '300px' }}>
+          <ProgressSpinner
+            style={{ width: '60px', height: '60px' }}
+            strokeWidth="8"
+            fill="var(--surface-ground)"
+            animationDuration=".5s"
+          />
+        </div>
+      )
+    }
 
   return (
     <DataTable

@@ -24,6 +24,8 @@ import TripExpenseDialog from './components/TripExpenseDialog/TripExpenseDialog'
 import TripExpenseTable from './components/TripExpenseTable/TripExpenseTable';
 import { deleteTripExpense } from './untils/deleteTripExpense';
 import { TripExpenseDeleteDialog } from './components/TripExpenseDeleteDialog/TripExpenseDeleteDialog';
+import { get } from 'http';
+import { set } from 'zod';
 
 
 
@@ -207,9 +209,9 @@ const TripsPage = () => {
   }
 
   // Cria a despesa
-  const handleSaveExpense = () => {
+  const handleSaveExpense = async () => {
     if (!currentExpenseTrip) return; // Garante que há uma trip selecionada
-    saveExpense(
+    await saveExpense(
       tripExpense,
       tripExpenses,
       currentExpenseTrip, // Passa a trip correta
@@ -224,17 +226,20 @@ const TripsPage = () => {
   }
 
   // Deleta a despesa
-  const handleDeleteExpense = () => {
-    deleteTripExpense(
+  const handleDeleteExpense = async () => {
+    await deleteTripExpense(
       tripExpense,
       setTripExpense,
       setTripExpenses,
       toast,
       emptyExpense,
       setLoading,
-      trips
+      trips,
+      setDeleteTripExpenseDialog,
+      getTrips,
+      setTrips
     )
-    getTrips(toast, setTrips);
+
   }
 
   const leftToolbarTemplate = () => (
@@ -300,6 +305,7 @@ const TripsPage = () => {
                 setShowingExpenses={setShowingExpenses}
                 setTripExpense={setTripExpense}
                 setDeleteTripExpenseDialog={setDeleteTripExpenseDialog}
+                loading={loading}
               />
             </>
           ) : (
