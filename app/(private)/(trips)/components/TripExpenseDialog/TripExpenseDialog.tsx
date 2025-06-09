@@ -9,6 +9,7 @@ import { InputTextarea } from "primereact/inputtextarea";
 import { classNames } from "primereact/utils";
 import { useRef, useState } from "react";
 import { Trip, TripExpense } from "../../trips.types";
+import { ProgressSpinner } from "primereact/progressspinner";
 
 export default function TripExpenseDialog(
   {
@@ -35,18 +36,35 @@ export default function TripExpenseDialog(
 
   const fileUploadRef = useRef<FileUpload>(null);
   const [uploading, setUploading] = useState(false);
+  const [uploadSuccess, setUploadSuccess] = useState(false);
 
 
   const newExpenseDialogFooter = (
     <>
-      <Button label="Cancelar" icon="pi pi-times" text onClick={hideTripExpenseDialog} />
-      <Button
-        label="Salvar"
-        icon="pi pi-check"
-        text
-        disabled={uploading}
-        onClick={() => handleSaveExpense()}
-      />
+      {uploading ? (
+        <div className="flex justify-content-center">
+          <ProgressSpinner
+            style={{ width: '20px', height: '20px' }}
+            strokeWidth="4"
+            fill="var(--surface-ground)"
+            animationDuration=".5s"
+          />
+        </div>
+      ) : (
+        <>
+          <Button label="Cancelar" icon="pi pi-times" text onClick={hideTripExpenseDialog} />
+          <Button
+            label="Salvar"
+            icon="pi pi-check"
+            text
+            onClick={() => {
+              handleSaveExpense();
+              setUploadSuccess(false);
+              }
+            }
+          />
+        </>
+      )}
     </>
   );
 
@@ -138,38 +156,59 @@ export default function TripExpenseDialog(
         />
       </div>
 
-      <div>
+      <div className="flex">
         <FileUpload
           ref={fileUploadRef}
           mode="basic"
-          name="file" // nome do campo para o backend
+          name="file"
           url="/api/upload"
-          accept="image/*,application/pdf"
-          multiple
+          accept="image/png, image/jpeg, application/pdf"
           auto
-          maxFileSize={1000000}
+          maxFileSize={5000000}
+          onBeforeUpload={() => setUploading(true)}
           onUpload={(e) => {
-            setUploading(false);
-            try {
-              const response = JSON.parse(e.xhr.response);
-              if (response.path) {
-                setTripExpense({ ...tripExpense, proof: response.path });
-              }
-            } catch (err) {
-              toast.current?.show({
-                severity: 'error',
-                summary: 'Erro',
-                detail: 'Erro ao fazer upload do arquivo',
-                life: 3000,
-              });
-              console.error("Erro no upload:", err);
+        try {
+          const response = JSON.parse(e.xhr.response);
+          if (response.path) {
+            setTripExpense({ ...tripExpense, proof: response.path });
             }
+            setUploadSuccess(true)
+          } catch (err) {
+            toast.current?.show({
+              severity: 'error',
+              summary: 'Erro',
+              detail: 'Erro ao fazer upload do arquivo',
+              life: 3000,
+            });
+            console.error("Erro no upload:", err);
+          }
+          setUploading(false);
+        
           }}
+          onError={() => {
+            toast.current?.show({
+              severity: 'error',
+              summary: 'Erro',
+              detail: 'Erro ao enviar o arquivo',
+              life: 3000,
+            });
+            setUploading(false);
+          }}
+
           chooseLabel="Comprovante"
           className="mr-2"
+
+          onValidationFail={(e) => {
+            console.error("Erro de validação:", e);
+            toast.current?.show({
+              severity: 'warn',
+              summary: 'Arquivo inválido',
+              detail: 'O arquivo deve ser PNG, JPG ou PDF com no máximo 5MB',
+              life: 3000,
+            });
+          }}
         />
-
-
+        {uploadSuccess && <i className="pi pi-check"></i>}
       </div>
 
     </Dialog>

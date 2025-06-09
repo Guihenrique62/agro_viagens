@@ -134,6 +134,7 @@ export const TripTable = ({
       filterDisplay="row"
       globalFilterFields={['name']}
     >
+      <Column field="user.name" header="Usuario" sortable headerStyle={{ minWidth: '25rem' }} />
       <Column field="destination" header="Destino" sortable body={destinationBodyTemplate} headerStyle={{ minWidth: '15rem' }} />
       <Column field="client" header="Cliente" sortable body={clientBodyTemplate} headerStyle={{ minWidth: '15rem' }} />
       <Column field="startDate" header="Data Inicio" body={startDateBodyTemplate} sortable />

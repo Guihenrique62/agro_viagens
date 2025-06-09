@@ -77,12 +77,6 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: 'Não autorizado' }, { status: 401 })
     }
     
-    // Valida se o usuário é um administrador
-    if (authenticatedUser.role !== 'Administrador') {
-      return NextResponse.json({ error: 'Acesso restrito a administradores' }, { status: 403 })
-    }
-
-
     const transports = await prisma.transports.findMany({
       select: {
         id: true,

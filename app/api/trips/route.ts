@@ -87,6 +87,26 @@ export async function POST(req: NextRequest) {
         userId: authenticatedUser.userId,
         parameters_kmId,
         status: 'EmAndamento'
+      },
+      select: {
+        id: true,
+        destination: true,
+        client: true,
+        reason: true,
+        escort: true,
+        type: true,
+        advance_value: true,
+        startDate: true,
+        endDate: true,
+        userId: true,
+        parameters_kmId: true,
+        status: true,
+        user : {
+          select: {
+            name: true,
+            email: true
+          }
+        }
       }
     })
 
@@ -115,41 +135,84 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: 'Não autorizado' }, { status: 401 })
     }
 
-    const trips = await prisma.trips.findMany({
-      where: {
-        userId: authenticatedUser.userId,
-      },
-      include: {
-        trip_expenses: {
-          include: {
-            expenses: true
-          }
-        },
-        trip_transports: {
-          include: {
-            transport: true
-          }
-        },
-        parameters_km: true,
-        user: {
-          select: {
-            id: true,
-            name: true
-          }
-        }
-      },
-      orderBy: {
-        startDate: 'desc'
-      }
-    })
+    // Se o usuario for ADMIN lista todas viajens 
+    if (authenticatedUser.role === 'Administrador') {
+        const trips = await prisma.trips.findMany({
+            include: {
+              trip_expenses: {
+                include: {
+                  expenses: true
+                }
+              },
+              trip_transports: {
+                include: {
+                  transport: true
+                }
+              },
+              parameters_km: true,
+              user: {
+                select: {
+                  id: true,
+                  name: true
+                }
+              }
+            },
+            orderBy: {
+              startDate: 'desc'
+            }
+          })
 
-    const tripsWithFormattedTransports = trips.map(trip => ({
-      ...trip,
-      transports: trip.trip_transports.map(t => t.transport),
-      trip_transports: undefined // opcional: remover o relacionamento intermediário da resposta
-    }))
+          const tripsWithFormattedTransports = trips.map(trip => ({
+            ...trip,
+            transports: trip.trip_transports.map(t => t.transport),
+            trip_transports: undefined // opcional: remover o relacionamento intermediário da resposta
+          }))
 
-    return NextResponse.json(tripsWithFormattedTransports, { status: 200 })
+          return NextResponse.json(tripsWithFormattedTransports, { status: 200 })
+    }
+
+    // Se o usuario for padrao lista apenas as proprias viajens
+    if (authenticatedUser.role === 'UsuarioPadrao') {
+      
+      const trips = await prisma.trips.findMany({
+            where: {
+              userId: authenticatedUser.userId,
+            },
+            include: {
+              trip_expenses: {
+                include: {
+                  expenses: true
+                }
+              },
+              trip_transports: {
+                include: {
+                  transport: true
+                }
+              },
+              parameters_km: true,
+              user: {
+                select: {
+                  id: true,
+                  name: true
+                }
+              }
+            },
+            orderBy: {
+              startDate: 'desc'
+            }
+          })
+
+          const tripsWithFormattedTransports = trips.map(trip => ({
+            ...trip,
+            transports: trip.trip_transports.map(t => t.transport),
+            trip_transports: undefined // opcional: remover o relacionamento intermediário da resposta
+          }))
+
+          return NextResponse.json(tripsWithFormattedTransports, { status: 200 })
+
+    }
+
+
 
   } catch (error) {
     console.error(error)

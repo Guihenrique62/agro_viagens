@@ -8,6 +8,7 @@ import { MultiSelect } from "primereact/multiselect";
 import { classNames } from "primereact/utils";
 
 
+
 export const TripDialog = ({
   visible,
   header,
@@ -18,8 +19,9 @@ export const TripDialog = ({
   setTrip,
   submitted,
   footer,
-  onHide
+  onHide,
 }: any) => {
+
 
   const onInputChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement> | InputMaskChangeEvent,

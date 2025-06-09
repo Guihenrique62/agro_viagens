@@ -70,7 +70,7 @@ export const saveTrip = async (
             endDate: formatDateToISO(trip.endDate),
             status: 'EmAndamento', // ou outro valor padrão
             parameters_kmId: parameterId,
-            transportIds: selectedTransports
+            transportIds: selectedTransports,
           }),
         });
 

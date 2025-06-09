@@ -72,11 +72,6 @@ export async function GET(req: NextRequest) {
     if (!authenticatedUser) {
       return NextResponse.json({ error: 'Não autorizado' }, { status: 401 })
     }
-    
-    // Valida se o usuário é um administrador
-    if (authenticatedUser.role !== 'Administrador') {
-      return NextResponse.json({ error: 'Acesso restrito a administradores' }, { status: 403 })
-    }
 
 
     const expenses = await prisma.expenses.findMany({
