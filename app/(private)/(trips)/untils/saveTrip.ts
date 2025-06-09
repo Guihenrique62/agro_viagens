@@ -11,14 +11,13 @@ export const saveTrip = async (
   toast: any,
   setSubmitted: (submitted: boolean) => void,
   selectedTransports: any,
-  findIndexById: (id: number) => number
 ) => {
 
-  console.log(selectedTransports, 'selectedTransports');
-  
+  const findIndexById = (id: number) => trips.findIndex((u) => u.id === id);
+
   setSubmitted(true);
 
-  if (trip.destination.trim() && trip.client.trim() && trip.reason.trim() && trip.type.trim()  && trip.startDate && trip.endDate) {
+  if (trip.destination.trim() && trip.client.trim() && trip.reason.trim() && trip.type.trim() && trip.startDate && trip.endDate) {
     let _trips = [...trips];
     let _trip = { ...trip };
 
@@ -107,4 +106,4 @@ export const saveTrip = async (
     setTripDialog(false);
     setTrip(emptyTrip);
   }
-  };
+};

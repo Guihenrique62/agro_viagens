@@ -127,8 +127,6 @@ model trip_expenses {
 
   expenses expenses @relation(fields: [expensesId], references: [id], onDelete: Cascade)
   trip trips @relation(fields: [tripId], references: [id], onDelete: Cascade)
-
-  @@unique([tripId, expensesId])
 }
 
 

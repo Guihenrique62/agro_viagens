@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/app/api/lib/prisma'
 import { z } from 'zod'
-import { verifyAuthHeaderFromAuthorization } from '@/app/api/lib/auth'
+import { verifyAuthHeader } from '@/app/api/lib/auth'
 
 // Validação dos dados para atualização da despesa de viagem
 const updateTripExpenseSchema = z.object({
@@ -19,7 +19,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
   const { id } = await params
 
   try {
-    const authenticatedUser = await verifyAuthHeaderFromAuthorization(req.headers.get('Authorization'))
+    const authenticatedUser = await verifyAuthHeader()
 
     if (!authenticatedUser) {
       return NextResponse.json({ error: 'Não autorizado' }, { status: 401 })
@@ -79,7 +79,7 @@ export async function DELETE(req: NextRequest, { params }: { params: Promise<{ i
   const { id } = await params
 
   try {
-    const authenticatedUser = await verifyAuthHeaderFromAuthorization(req.headers.get('Authorization'))
+    const authenticatedUser = await verifyAuthHeader()
 
     if (!authenticatedUser) {
       return NextResponse.json({ error: 'Não autorizado' }, { status: 401 })

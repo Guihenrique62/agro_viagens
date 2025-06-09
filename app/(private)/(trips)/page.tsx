@@ -3,12 +3,12 @@
 import { FilterMatchMode } from 'primereact/api';
 import { Button } from 'primereact/button';
 import { DataTable } from 'primereact/datatable';
-import { InputMaskChangeEvent } from 'primereact/inputmask';
+import { InputMask, InputMaskChangeEvent } from 'primereact/inputmask';
 import { InputText } from 'primereact/inputtext';
 import { Toast } from 'primereact/toast';
 import { Toolbar } from 'primereact/toolbar';
 import { useEffect, useRef, useState } from 'react';
-import { Trip } from './trips.types';
+import { Trip, TripExpense } from './trips.types';
 import { Transport } from '../transport/transport.types';
 import { TripTable } from './components/TripTable/TripTable';
 import { TripDialog } from './components/TripDialog/TripDialog';
@@ -18,8 +18,12 @@ import { getTransports } from './untils/getTransports';
 import { saveTrip } from './untils/saveTrip';
 import { editTrip } from './untils/editTrip';
 import { deleteTrip } from './untils/deleteTrip';
-
-
+import { getExpenses } from './untils/getExpenses';
+import { saveExpense } from './untils/saveExpense';
+import TripExpenseDialog from './components/TripExpenseDialog/TripExpenseDialog';
+import TripExpenseTable from './components/TripExpenseTable/TripExpenseTable';
+import { deleteTripExpense } from './untils/deleteTripExpense';
+import { TripExpenseDeleteDialog } from './components/TripExpenseDeleteDialog/TripExpenseDeleteDialog';
 
 
 
@@ -52,30 +56,56 @@ const TripsPage = () => {
     trip_expenses: [],
   };
 
+  const emptyExpense: TripExpense = {
+    id: 0,
+    typePayment: '',
+    value: 0,
+    date: '',
+    taxDocument: '',
+    observation: '',
+    createdAt: '',
+    proof: '',
+    tripId: 0,
+    expenses: {
+      id: 0,
+      name: '',
+      status: 0,
+    },
+  };
+
   const [trips, setTrips] = useState<Trip[]>([]);
   const [trip, setTrip] = useState<Trip>(emptyTrip);
-  const [transports, setTransports] = useState<Transport>(); 
+  const [transports, setTransports] = useState<Transport>();
   const [selectedTransports, setSelectedTransports] = useState<Transport[]>([]);
 
   const [tripDialog, setTripDialog] = useState(false);
   const [deleteTripDialog, setDeleteTripDialog] = useState(false);
+  const [deleteTripExpenseDialog, setDeleteTripExpenseDialog] = useState(false);
+
   const [editTripDialog, setEditTripDialog] = useState(false);
 
-  
+  const [expensesDialog, setExpensesDialog] = useState(false);
+  const [showingExpenses, setShowingExpenses] = useState(false);
+  const [tripExpenses, setTripExpenses] = useState<TripExpense[]>([]);
+  const [tripExpense, setTripExpense] = useState<TripExpense>(emptyExpense);
+  const [typeExpenseOptions, setTypeExpenseOptions] = useState([])
+  const [currentExpenseTrip, setCurrentExpenseTrip] = useState<Trip | null>(null);
+
+
   const [selectedTrips, setSelectedTrips] = useState(null);
   const [submitted, setSubmitted] = useState(false);
-
 
   const toast = useRef<Toast>(null);
   const dt = useRef<DataTable<any>>(null);
   const [loading, setLoading] = useState(false);
 
   const [filters, setFilters] = useState({
-      global: { value: '', matchMode: FilterMatchMode.CONTAINS }
-    });
+    global: { value: '', matchMode: FilterMatchMode.CONTAINS }
+  });
 
   useEffect(() => {
     getTrips(toast, setTrips);
+    getExpenses(toast, setTypeExpenseOptions)
   }, []);
 
   useEffect(() => {
@@ -96,6 +126,20 @@ const TripsPage = () => {
     setEditTripDialog(true);
   };
 
+  const openNewExpense = () => {
+    setTripExpense(emptyExpense);
+    setSubmitted(false);
+    setExpensesDialog(true);
+  }
+
+  const openExpenses = (trip: Trip) => {
+    setTripExpenses([...trip.trip_expenses])
+    setCurrentExpenseTrip(trip);
+    setSubmitted(false);
+    setShowingExpenses(true);
+  }
+
+
   // esconde o diagolo 
   const hideDialog = () => {
     setSubmitted(false);
@@ -108,12 +152,13 @@ const TripsPage = () => {
     setEditTripDialog(false);
   };
 
-  // esconde o dialogo de deletar usuario
-  const hideDeleteProductDialog = () => setDeleteTripDialog(false);
+  // esconde o dialogo de despesas
+  const hideTripExpenseDialog = () => {
+    setSubmitted(false);
+    setExpensesDialog(false);
+  }
 
-  const findIndexById = (id: number) => trips.findIndex((u) => u.id === id);
-  
-  
+
 
   // Salva a viagem
   const handleSaveTrip = () => {
@@ -127,9 +172,8 @@ const TripsPage = () => {
       toast,
       setSubmitted,
       selectedTransports,
-      findIndexById
     )
-}
+  }
 
   // Edita a viagem
   const handleEditTrip = () => {
@@ -144,8 +188,8 @@ const TripsPage = () => {
       toast,
       setSubmitted
     )
-}
-  
+  }
+
   // Deleta a viagem
   const handleDeleteTrip = () => {
     deleteTrip(
@@ -161,66 +205,37 @@ const TripsPage = () => {
       trips
     )
   }
-    
 
+  // Cria a despesa
+  const handleSaveExpense = () => {
+    if (!currentExpenseTrip) return; // Garante que há uma trip selecionada
+    saveExpense(
+      tripExpense,
+      tripExpenses,
+      currentExpenseTrip, // Passa a trip correta
+      setExpensesDialog,
+      setTripExpense,
+      setTripExpenses,
+      emptyExpense,
+      toast,
+      setSubmitted,
+    )
+    getTrips(toast, setTrips); // Atualiza a lista de viagens após salvar a despesa
+  }
 
-  // Confirma a exclusão do usuario
-  const confirmDeleteProduct = (trip: Trip) => {
-    setTrip(trip);
-    setDeleteTripDialog(true);
-  };
-
-  
-
-  const onInputChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement> | InputMaskChangeEvent,
-    name: string
-  ) => {
-    const val = (e.target && e.target.value) || '';
-    setTrip({ ...trip, [name]: val });
-  };
-
-
-  const destinationBodyTemplate = (rowData: Trip) => <span>{rowData.destination}</span>;
-  const clientBodyTemplate = (rowData: Trip) => <span>{rowData.client}</span>;
-  const startDateBodyTemplate = (rowData: Trip) => {
-    if (!rowData.startDate) return null;
-    const date = new Date(rowData.startDate);
-    const day = String(date.getDate()).padStart(2, '0');
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    const year = date.getFullYear();
-    return <span>{`${day}/${month}/${year}`}</span>;
-  };
-
-  const statusBodyTemplate = (rowData: Trip) => (
-      <>
-        {rowData.status === "EmAndamento" ? (
-          <span className="product-badge status-available">Em andamento</span>
-        ) : rowData.status === "Finalizada" ? (
-          <span className="product-badge status-outofstock">Finalizada</span>
-        ) : rowData.status === "Cancelada" ? (
-          <span className="product-badge status-lowstock">Cancelada</span>
-        ) : null}
-      </>
-  );
-
-  const actionBodyTemplate = (rowData: Trip) => (
-    <>
-      <Button
-        icon="pi pi-pencil"
-        rounded
-        severity="info"
-        className="mr-2"
-        onClick={() => openEdit(rowData)}
-      />
-      <Button
-        icon="pi pi-trash"
-        rounded
-        severity="danger"
-        onClick={() => confirmDeleteProduct(rowData)}
-      />
-    </>
-  );
+  // Deleta a despesa
+  const handleDeleteExpense = () => {
+    deleteTripExpense(
+      tripExpense,
+      setTripExpense,
+      setTripExpenses,
+      toast,
+      emptyExpense,
+      setLoading,
+      trips
+    )
+    getTrips(toast, setTrips);
+  }
 
   const leftToolbarTemplate = () => (
     <div className="my-2">
@@ -228,30 +243,13 @@ const TripsPage = () => {
     </div>
   );
 
-  const onGlobalFilterChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const value = e.target.value;
-        let _filters = { ...filters };
-      
-        _filters['global'].value = value;
-      
-        setFilters(_filters);
-      };
-
-
-  const header = (
-    <div className="flex flex-column md:flex-row md:justify-content-between md:align-items-center">
-      <h5 className="m-0">Cadastro de Viagens</h5>
-      <span className="block mt-2 md:mt-0 p-input-icon-left">
-        <i className="pi pi-search" />
-        <InputText
-          type="search"
-          value={filters.global.value}
-          onChange={onGlobalFilterChange}
-          placeholder="Buscar..."
-        />
-      </span>
+  const leftToolbarTemplateExpense = () => (
+    <div className="my-2">
+      <Button label="Nova Despesa" icon="pi pi-plus" severity="info" className="mr-2" onClick={openNewExpense} />
     </div>
   );
+
+
 
   const tripDialogFooter = (
     <>
@@ -277,41 +275,55 @@ const TripsPage = () => {
     </>
   );
 
-  const deleteTripDialogFooter = (
-    <>
-      <Button label="Não" icon="pi pi-times" text onClick={hideDeleteProductDialog} />
-      <Button label="Sim" icon="pi pi-check" text onClick={() => handleDeleteTrip()} />
-    </>
-  );
+
+
+
+
 
 
   return (
     <div className="grid crud-demo">
       <div className="col-12">
         <div className="card">
-          
+
           {/* Pop up de notificação */}
           <Toast ref={toast} />
-          <Toolbar className="mb-4" left={leftToolbarTemplate}  />
-          
+
+
           {/* Tabela de viagens */}
-          <TripTable 
-            dt={dt}
-            trips={trips}
-            selectedTrips={selectedTrips}
-            setSelectedTrips={setSelectedTrips}
-            loading={loading}
-            header={header}
-            filters={filters}
-            destinationBodyTemplate={destinationBodyTemplate}
-            clientBodyTemplate={clientBodyTemplate}
-            startDateBodyTemplate={startDateBodyTemplate}
-            statusBodyTemplate={statusBodyTemplate}
-            actionBodyTemplate={actionBodyTemplate}
-          /> 
+          {showingExpenses ? (
+            <>
+              <Toolbar className="mb-4" left={leftToolbarTemplateExpense} />
+              <TripExpenseTable
+                dt={dt}
+                tripExpenses={tripExpenses}
+                setShowingExpenses={setShowingExpenses}
+                setTripExpense={setTripExpense}
+                setDeleteTripExpenseDialog={setDeleteTripExpenseDialog}
+              />
+            </>
+          ) : (
+            <>
+              <Toolbar className="mb-4" left={leftToolbarTemplate} />
+              <TripTable
+                dt={dt}
+                trips={trips}
+                selectedTrips={selectedTrips}
+                setSelectedTrips={setSelectedTrips}
+                loading={loading}
+                setFilters={setFilters}
+                filters={filters}
+                setTrip={setTrip}
+                setDeleteTripDialog={setDeleteTripDialog}
+                openEdit={openEdit}
+                openExpenses={openExpenses}
+              />
+            </>
+          )}
+
 
           {/* Dialogo de nova Viagem */}
-          <TripDialog 
+          <TripDialog
             visible={tripDialog}
             header="Nova Viagem"
             trip={trip}
@@ -320,14 +332,13 @@ const TripsPage = () => {
             selectedTransports={selectedTransports}
             setSelectedTransports={setSelectedTransports}
             submitted={submitted}
-            onInputChange={onInputChange}
             onHide={hideDialog}
             footer={tripDialogFooter}
-          
-          /> 
+
+          />
 
           {/* Dialogo de editar Viagem */}
-          <TripDialog 
+          <TripDialog
             visible={editTripDialog}
             header="Editar Viagem"
             trip={trip}
@@ -336,21 +347,38 @@ const TripsPage = () => {
             selectedTransports={selectedTransports}
             setSelectedTransports={setSelectedTransports}
             submitted={submitted}
-            onInputChange={onInputChange}
             onHide={hideEditTripDialog}
             footer={editTripDialogFooter}
-        
-          /> 
 
-          <TripDialogDelete 
+          />
+
+          <TripDialogDelete
             deleteTripDialog={deleteTripDialog}
-            hideDeleteProductDialog={hideDeleteProductDialog}
-            deleteTripDialogFooter={deleteTripDialogFooter}
+            setDeleteTripDialog={setDeleteTripDialog}
+            handleDeleteTrip={handleDeleteTrip}
             trip={trip}
-          /> 
+          />
 
 
-          
+          {/* Dialogo de despesas */}
+          <TripExpenseDialog
+            expensesDialog={expensesDialog}
+            handleSaveExpense={handleSaveExpense}
+            hideTripExpenseDialog={hideTripExpenseDialog}
+            tripExpense={tripExpense}
+            setTripExpense={setTripExpense}
+            typeExpenseOptions={typeExpenseOptions}
+            submitted={submitted}
+            toast={toast}
+          />
+
+          {/* Dialogo de exclusão de despesas */}
+          <TripExpenseDeleteDialog
+            deleteTripExpenseDialog={deleteTripExpenseDialog}
+            setDeleteTripExpenseDialog={setDeleteTripExpenseDialog}
+            handleDeleteExpense={handleDeleteExpense}
+          />
+
         </div>
       </div>
     </div>

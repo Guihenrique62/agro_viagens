@@ -1,7 +1,7 @@
 import { Transport } from "nodemailer";
 import { Dialog } from "primereact/dialog";
 import { Dropdown } from "primereact/dropdown";
-import { InputMask } from "primereact/inputmask";
+import { InputMask, InputMaskChangeEvent } from "primereact/inputmask";
 import { InputNumber } from "primereact/inputnumber";
 import { InputText } from "primereact/inputtext";
 import { MultiSelect } from "primereact/multiselect";
@@ -15,17 +15,24 @@ export const TripDialog = ({
   transports,
   selectedTransports,
   setSelectedTransports,
-  onInputChange,
   setTrip,
   submitted,
   footer,
   onHide
-}: any) => { 
+}: any) => {
 
-  return ( 
-    
+  const onInputChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement> | InputMaskChangeEvent,
+    name: string
+  ) => {
+    const val = (e.target && e.target.value) || '';
+    setTrip({ ...trip, [name]: val });
+  };
+
+  return (
+
     <Dialog visible={visible} style={{ width: '450px' }} header={header} modal className="p-fluid" footer={footer} onHide={onHide}>
-      
+
       <div className="field">
         <label htmlFor="destination">Destino</label>
         <InputText
@@ -66,25 +73,25 @@ export const TripDialog = ({
       <div className="field">
         <label htmlFor="escort">Acompanhante</label>
         <InputText
-        id="escort"
-        value={trip.escort}
-        onChange={(e) => onInputChange(e, 'escort')}
+          id="escort"
+          value={trip.escort}
+          onChange={(e) => onInputChange(e, 'escort')}
         />
       </div>
 
       <div className="field">
         <label htmlFor="type">Tipo da Viagem</label>
-        <Dropdown 
-          value={trip.type} 
-          onChange={(e) => setTrip({ ...trip, type: e.value })} 
-          options={['Cortesia', 'Comercial', 'Entre Unidades', 'Acordo', 'Visita']} 
-          placeholder="Selecione" className="w-full md:w-14rem" 
+        <Dropdown
+          value={trip.type}
+          onChange={(e) => setTrip({ ...trip, type: e.value })}
+          options={['Cortesia', 'Comercial', 'Entre Unidades', 'Acordo', 'Visita']}
+          placeholder="Selecione" className="w-full md:w-14rem"
         />
       </div>
 
       <div className="field">
-          <label htmlFor="transports">Meios de Transporte</label>
-          <MultiSelect
+        <label htmlFor="transports">Meios de Transporte</label>
+        <MultiSelect
           id="transports"
           value={selectedTransports}
           options={Array.isArray(transports) ? transports : []}
@@ -99,31 +106,31 @@ export const TripDialog = ({
           showSelectAll={false}
           required
           className={classNames({ 'p-invalid w-full md:w-20rem': submitted && !trip.transports })}
-          />
+        />
         {submitted && !trip.transports && <small className="p-invalid">Transporte é obrigatório</small>}
       </div>
 
       <div className="field">
         <label htmlFor="advance_value">Valor do adiantamento</label>
-        <InputNumber 
+        <InputNumber
           id='advance_value'
-          value={trip.advance_value} 
+          value={trip.advance_value}
           onChange={(e) => setTrip({ ...trip, advance_value: e.value ?? 0 })}
           autoFocus
           minFractionDigits={2} maxFractionDigits={2}
         />
-    
+
       </div>
 
       <div className="field">
         <label htmlFor="startDate">Data inicio</label>
 
-        <InputMask 
-        value={trip.startDate} 
-        onChange={(e) => onInputChange(e, 'startDate')}
-        mask="99/99/9999" placeholder="dd/mm/yyyy" 
-        slotChar="dd/mm/yyyy" 
-        className={classNames({ 'p-invalid': submitted && !trip.startDate })}
+        <InputMask
+          value={trip.startDate}
+          onChange={(e) => onInputChange(e, 'startDate')}
+          mask="99/99/9999" placeholder="dd/mm/yyyy"
+          slotChar="dd/mm/yyyy"
+          className={classNames({ 'p-invalid': submitted && !trip.startDate })}
         />
 
         {submitted && !trip.startDate && <small className="p-invalid">A data inicio é obrigatório</small>}
@@ -132,18 +139,18 @@ export const TripDialog = ({
       <div className="field">
         <label htmlFor="endDate">Data Fim</label>
 
-        <InputMask 
-        value={trip.endDate} 
-        onChange={(e) => onInputChange(e, 'endDate')}
-        mask="99/99/9999" placeholder="dd/mm/yyyy" 
-        slotChar="dd/mm/yyyy" 
-        className={classNames({ 'p-invalid': submitted && !trip.endDate })}
+        <InputMask
+          value={trip.endDate}
+          onChange={(e) => onInputChange(e, 'endDate')}
+          mask="99/99/9999" placeholder="dd/mm/yyyy"
+          slotChar="dd/mm/yyyy"
+          className={classNames({ 'p-invalid': submitted && !trip.endDate })}
         />
 
         {submitted && !trip.endDate && <small className="p-invalid">A data final é obrigatório</small>}
       </div>
 
-      
+
     </Dialog>
   )
 }

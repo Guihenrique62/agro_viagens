@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/app/api/lib/prisma'
 import { z } from 'zod'
-import { verifyAuthHeader, verifyAuthHeaderFromAuthorization } from '@/app/api/lib/auth'
+import { verifyAuthHeader } from '@/app/api/lib/auth'
 
 // Validação dos dados da despesa de viagem
 const tripExpenseSchema = z.object({
@@ -19,7 +19,7 @@ const tripExpenseSchema = z.object({
 
 export async function POST(req: NextRequest) {
   try {
-    const authenticatedUser = await verifyAuthHeaderFromAuthorization(req.headers.get('Authorization'))
+    const authenticatedUser = await verifyAuthHeader()
 
     if (!authenticatedUser) {
       return NextResponse.json({ error: 'Não autorizado' }, { status: 401 })

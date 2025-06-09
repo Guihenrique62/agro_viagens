@@ -48,3 +48,20 @@ export interface Trip {
         }
     }[]
 }
+
+export interface TripExpense {
+    id: number;
+    typePayment: string;
+    value: number;
+    date: string;
+    taxDocument: string;
+    observation: string;
+    createdAt: string;
+    proof: string;
+    tripId: number;
+    expenses: {
+      id: number;
+      name: string;
+      status: number;
+    };
+  }
