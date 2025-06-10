@@ -24,8 +24,8 @@ import TripExpenseDialog from './components/TripExpenseDialog/TripExpenseDialog'
 import TripExpenseTable from './components/TripExpenseTable/TripExpenseTable';
 import { deleteTripExpense } from './untils/deleteTripExpense';
 import { TripExpenseDeleteDialog } from './components/TripExpenseDeleteDialog/TripExpenseDeleteDialog';
-import { get } from 'http';
-import { set } from 'zod';
+import { TripFinishDialog } from './components/TripFinishDialog/TripFinishDialog';
+import { finishTrip } from './untils/finishTrip';
 
 
 
@@ -92,6 +92,8 @@ const TripsPage = () => {
   const [tripExpense, setTripExpense] = useState<TripExpense>(emptyExpense);
   const [typeExpenseOptions, setTypeExpenseOptions] = useState([])
   const [currentExpenseTrip, setCurrentExpenseTrip] = useState<Trip | null>(null);
+
+  const [tripFinishDialog, setTripFinishDialog] = useState(false)
 
 
   const [selectedTrips, setSelectedTrips] = useState(null);
@@ -239,7 +241,18 @@ const TripsPage = () => {
       getTrips,
       setTrips
     )
+  }
 
+  const handleFinishTrip = () => {
+    finishTrip(
+      trip,
+      trips,
+      setTrips,
+      setTrip,
+      setTripFinishDialog,
+      emptyTrip,
+      toast
+    )
   }
 
   const leftToolbarTemplate = () => (
@@ -323,6 +336,7 @@ const TripsPage = () => {
                 setDeleteTripDialog={setDeleteTripDialog}
                 openEdit={openEdit}
                 openExpenses={openExpenses}
+                setTripFinishDialog = {setTripFinishDialog}
               />
             </>
           )}
@@ -383,6 +397,12 @@ const TripsPage = () => {
             deleteTripExpenseDialog={deleteTripExpenseDialog}
             setDeleteTripExpenseDialog={setDeleteTripExpenseDialog}
             handleDeleteExpense={handleDeleteExpense}
+          />
+
+          <TripFinishDialog 
+            tripFinishDialog = {tripFinishDialog}
+            setTripFinishDialog = {setTripFinishDialog}
+            handleFinishTrip = {handleFinishTrip}
           />
 
         </div>

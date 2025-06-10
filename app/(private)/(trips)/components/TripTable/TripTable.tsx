@@ -4,6 +4,12 @@ import { InputText } from "primereact/inputtext";
 import { ProgressSpinner } from "primereact/progressspinner"
 import { Trip } from "../../trips.types";
 import { Button } from "primereact/button";
+import { reportDownload } from "../../untils/reportDownload";
+import { ListBox } from "primereact/listbox";
+import { useRef, useState } from "react";
+import { SplitButton } from "primereact/splitbutton";
+import { Menu } from "primereact/menu";
+import { OverlayPanel } from "primereact/overlaypanel";
 
 export const TripTable = ({
   dt,
@@ -16,7 +22,8 @@ export const TripTable = ({
   openEdit,
   openExpenses,
   setTrip,
-  setDeleteTripDialog
+  setDeleteTripDialog,
+  setTripFinishDialog
 }: any) => {
 
   const confirmDeleteTrip = (trip: Trip) => {
@@ -48,35 +55,119 @@ export const TripTable = ({
     </div>
   );
 
-  const actionBodyTemplate = (rowData: Trip) => (
-    <>
-      <Button
-        icon="pi pi-pencil"
-        rounded
-        severity="info"
-        className="mr-2"
-        onClick={() => openEdit(rowData)}
-      />
+const actionBodyTemplate = (rowData: Trip) => {
+  const actionsMenuRef = useRef<any>(null);
+  const downloadsMenuRef = useRef<any>(null);
 
-      <Button
-        icon="pi pi-plus-circle"
-        rounded
-        severity="success"
-        onClick={() => {
-          openExpenses(rowData);
-        }}
-        className="mr-2"
-      />
+  // Menu de ações (Aprovar, Editar, Excluir)
+  const actionItems = [
+    {
+      label: 'Aprovar',
+      icon: 'pi pi-check',
+      command: () => setTripFinishDialog(true)
+    },
+    {
+      label: 'Editar',
+      icon: 'pi pi-pencil',
+      command: () => openEdit(rowData)
+    },
+    {
+      label: 'Excluir',
+      icon: 'pi pi-trash',
+      command: () => confirmDeleteTrip(rowData)
+    }
+  ];
 
-      <Button
-        icon="pi pi-trash"
-        rounded
-        severity="danger"
-        onClick={() => confirmDeleteTrip(rowData)}
-      />
+  // Menu de downloads (2 opções como solicitado)
+  const downloadItems = [
+    {
+      label: 'Download Relatório Padrão',
+      icon: 'pi pi-download',
+      command: () => reportDownload(rowData)
+    },
+    {
+      label: 'Download Relatório Detalhado',
+      icon: 'pi pi-download',
+      command: () => console.log('Implementar download detalhado') // Placeholder para a segunda função
+    }
+  ];
 
-    </>
+  return (
+    <div className="flex gap-1">
+      {/* Botão de Ações */}
+      <div>
+        <Button 
+          icon="pi pi-cog" 
+          rounded 
+          outlined
+          className="p-button-sm"
+          onClick={(e) => {
+            e.stopPropagation();
+            if (actionsMenuRef.current) {
+              actionsMenuRef.current.toggle(e);
+            }
+          }}
+        />
+        <OverlayPanel 
+          ref={actionsMenuRef}
+          onHide={() => {}}
+        >
+          {actionItems.map((item, i) => (
+            <Button 
+              key={`action-${i}`}
+              label={item.label}
+              icon={item.icon}
+              className="p-button-text p-button-sm w-full"
+              onClick={(e) => {
+                e.stopPropagation();
+                item.command();
+                if (actionsMenuRef.current) {
+                  actionsMenuRef.current.hide();
+                }
+              }}
+            />
+          ))}
+        </OverlayPanel>
+      </div>
+
+      {/* Botão de Downloads */}
+      <div>
+        <Button 
+          icon="pi pi-download" 
+          rounded 
+          outlined
+          className="p-button-sm"
+          onClick={(e) => {
+            e.stopPropagation();
+            if (downloadsMenuRef.current) {
+              downloadsMenuRef.current.toggle(e);
+            }
+          }}
+        />
+        <OverlayPanel 
+          ref={downloadsMenuRef}
+          onHide={() => {}}
+        >
+          {downloadItems.map((item, i) => (
+            <Button 
+              key={`download-${i}`}
+              label={item.label}
+              icon={item.icon}
+              className="p-button-text p-button-sm w-full"
+              onClick={(e) => {
+                e.stopPropagation();
+                item.command();
+                if (downloadsMenuRef.current) {
+                  downloadsMenuRef.current.hide();
+                }
+              }}
+            />
+          ))}
+        </OverlayPanel>
+      </div>
+    </div>
   );
+};
 
   const statusBodyTemplate = (rowData: Trip) => (
     <>
@@ -115,6 +206,8 @@ export const TripTable = ({
     )
   }
 
+
+
   return (
     <DataTable
       ref={dt}
@@ -124,7 +217,7 @@ export const TripTable = ({
       paginator
       rows={5}
       rowsPerPageOptions={[5, 10, 25]}
-      className="datatable-responsive"
+      className="datatable-responsive cursor-pointer"
       paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport RowsPerPageDropdown"
       currentPageReportTemplate="Mostrando {first} até {last} de {totalRecords} usuários"
       emptyMessage="Nenhuma viagem encontrado."
@@ -133,6 +226,8 @@ export const TripTable = ({
       filters={filters}
       filterDisplay="row"
       globalFilterFields={['name']}
+      onRowClick={(e) => {
+        openExpenses(e.data)}}
     >
       <Column field="user.name" header="Usuario" sortable headerStyle={{ minWidth: '25rem' }} />
       <Column field="destination" header="Destino" sortable body={destinationBodyTemplate} headerStyle={{ minWidth: '15rem' }} />
