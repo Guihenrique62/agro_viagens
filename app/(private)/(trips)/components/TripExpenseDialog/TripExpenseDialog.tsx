@@ -79,7 +79,7 @@ export default function TripExpenseDialog(
   return (
     <Dialog
       visible={expensesDialog}
-      style={{ width: '50vw' }}
+      style={{ width: '450px' }}
       header="Nova Despesa"
       modal
       className="p-fluid"

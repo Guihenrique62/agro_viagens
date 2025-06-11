@@ -4,7 +4,7 @@ import { InputText } from "primereact/inputtext";
 import { ProgressSpinner } from "primereact/progressspinner"
 import { Trip } from "../../trips.types";
 import { Button } from "primereact/button";
-import { getReportFinancial } from "../../untils/getReports";
+import { getReportClient, getReportFinancial } from "../../untils/getReports";
 import { ListBox } from "primereact/listbox";
 import { useRef, useState } from "react";
 import { SplitButton } from "primereact/splitbutton";
@@ -29,6 +29,11 @@ export const TripTable = ({
   const confirmDeleteTrip = (trip: Trip) => {
     setTrip(trip);
     setDeleteTripDialog(true);
+  };
+
+  const confirmFinishTrip = (trip: Trip) => {
+    setTrip(trip);
+    setTripFinishDialog(true);
   };
 
   const onGlobalFilterChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -59,13 +64,8 @@ const ActionBodyTemplate = (rowData: Trip) => {
   const actionsMenuRef = useRef<any>(null);
   const downloadsMenuRef = useRef<any>(null);
 
-  // Menu de ações (Aprovar, Editar, Excluir)
-  const actionItems = [
-    {
-      label: 'Aprovar',
-      icon: 'pi pi-check',
-      command: () => setTripFinishDialog(true)
-    },
+  // Menu base de ações
+  const baseActionItems = [
     {
       label: 'Editar',
       icon: 'pi pi-pencil',
@@ -83,7 +83,27 @@ const ActionBodyTemplate = (rowData: Trip) => {
     }
   ];
 
-  // Menu de downloads (2 opções como solicitado)
+  // Ação de aprovação (só aparece se não estiver finalizada)
+  const approveAction = {
+    label: 'Aprovar',
+    icon: 'pi pi-check',
+    command: () => confirmFinishTrip(rowData)
+  };
+
+  // Filtra as ações baseadas no status
+  const getActionItems = () => {
+    if (rowData.status === "Finalizada") {
+      // Se finalizada, mostra apenas Excluir
+      return baseActionItems.filter(item => item.label === 'Excluir');
+    } else {
+      // Se não finalizada, mostra todas as ações + Aprovar
+      return [...baseActionItems, approveAction];
+    }
+  };
+
+  const actionItems = getActionItems();
+
+  // Menu de downloads (mantém o mesmo independente do status)
   const downloadItems = [
     {
       label: 'Relatório Financeiro',
@@ -93,49 +113,51 @@ const ActionBodyTemplate = (rowData: Trip) => {
     {
       label: 'Relatório Cliente',
       icon: 'pi pi-download',
-      command: () => console.log('Implementar download detalhado') // Placeholder para a segunda função
+      command: () => getReportClient(rowData)
     }
   ];
 
   return (
     <div className="flex gap-1">
-      {/* Botão de Ações */}
-      <div>
-        <Button 
-          icon="pi pi-cog" 
-          rounded 
-          outlined
-          className="p-button-sm"
-          onClick={(e) => {
-            e.stopPropagation();
-            if (actionsMenuRef.current) {
-              actionsMenuRef.current.toggle(e);
-            }
-          }}
-        />
-        <OverlayPanel 
-          ref={actionsMenuRef}
-          onHide={() => {}}
-        >
-          {actionItems.map((item, i) => (
-            <Button 
-              key={`action-${i}`}
-              label={item.label}
-              icon={item.icon}
-              className="p-button-text p-button-sm w-full"
-              onClick={(e) => {
-                e.stopPropagation();
-                item.command();
-                if (actionsMenuRef.current) {
-                  actionsMenuRef.current.hide();
-                }
-              }}
-            />
-          ))}
-        </OverlayPanel>
-      </div>
+      {/* Botão de Ações - Só mostra se houver ações disponíveis */}
+      {actionItems.length > 0 && (
+        <div>
+          <Button 
+            icon="pi pi-cog" 
+            rounded 
+            outlined
+            className="p-button-sm"
+            onClick={(e) => {
+              e.stopPropagation();
+              if (actionsMenuRef.current) {
+                actionsMenuRef.current.toggle(e);
+              }
+            }}
+          />
+          <OverlayPanel 
+            ref={actionsMenuRef}
+            onHide={() => {}}
+          >
+            {actionItems.map((item, i) => (
+              <Button 
+                key={`action-${i}`}
+                label={item.label}
+                icon={item.icon}
+                className="p-button-text p-button-sm w-full"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  item.command();
+                  if (actionsMenuRef.current) {
+                    actionsMenuRef.current.hide();
+                  }
+                }}
+              />
+            ))}
+          </OverlayPanel>
+        </div>
+      )}
 
-      {/* Botão de Downloads */}
+      {/* Botão de Downloads (sempre visível) */}
       <div>
         <Button 
           icon="pi pi-download" 
@@ -179,7 +201,7 @@ const ActionBodyTemplate = (rowData: Trip) => {
       {rowData.status === "EmAndamento" ? (
         <span className="product-badge status-available">Em andamento</span>
       ) : rowData.status === "Finalizada" ? (
-        <span className="product-badge status-outofstock">Finalizada</span>
+        <span className="product-badge status-instock">Finalizada</span>
       ) : rowData.status === "Cancelada" ? (
         <span className="product-badge status-lowstock">Cancelada</span>
       ) : null}
@@ -189,12 +211,11 @@ const ActionBodyTemplate = (rowData: Trip) => {
   const destinationBodyTemplate = (rowData: Trip) => <span>{rowData.destination}</span>;
   const clientBodyTemplate = (rowData: Trip) => <span>{rowData.client}</span>;
   const startDateBodyTemplate = (rowData: Trip) => {
-    if (!rowData.startDate) return null;
-    const date = new Date(rowData.startDate);
-    const day = String(date.getDate()).padStart(2, '0');
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    const year = date.getFullYear();
-    return <span>{`${day}/${month}/${year}`}</span>;
+
+    const [year, month, day] = new Date(rowData.startDate).toISOString().split('T')[0].split('-');
+    return <span>{day}/{month}/{year}</span>;
+
+      
   };
 
 
@@ -210,8 +231,6 @@ const ActionBodyTemplate = (rowData: Trip) => {
       </div>
     )
   }
-
-
 
   return (
     <DataTable

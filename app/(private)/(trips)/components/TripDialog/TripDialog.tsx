@@ -1,3 +1,4 @@
+import { formatDateToPadrao } from "@/app/(private)/untils/formatDateToISO";
 import { Transport } from "nodemailer";
 import { Dialog } from "primereact/dialog";
 import { Dropdown } from "primereact/dropdown";
@@ -21,7 +22,6 @@ export const TripDialog = ({
   footer,
   onHide,
 }: any) => {
-
 
   const onInputChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement> | InputMaskChangeEvent,

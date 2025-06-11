@@ -150,3 +150,44 @@ export async function DELETE(req: NextRequest, { params }: { params: Promise<{ i
     return NextResponse.json({ error: 'Erro ao deletar a viagem.' }, { status: 500 })
   }
 }
+
+export async function POST(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+   const { id } = await params;
+
+  try {
+    const authenticatedUser = await verifyAuthHeader()
+
+    if (!authenticatedUser) {
+      return NextResponse.json({ error: 'Não autorizado' }, { status: 401 })
+    }
+
+    const tripId = Number(id)
+    if (isNaN(tripId)) {
+      return NextResponse.json({ error: 'ID da viagem inválido' }, { status: 400 })
+    }
+
+    const body = await req.json()
+
+    const { status } = body
+
+    const existingTrip = await prisma.trips.findUnique({ where: { id: tripId } })
+
+    if (!existingTrip) {
+      return NextResponse.json({ error: 'Viagem não encontrada.' }, { status: 404 })
+    }
+
+    // Atualiza a trip
+    const updatedTrip = await prisma.trips.update({
+      where: { id: tripId },
+      data: {
+        status
+      }
+    })
+
+    return NextResponse.json(updatedTrip, { status: 200 })
+
+  } catch (error) {
+    console.error(error)
+    return NextResponse.json({ error: 'Erro interno ao atualizar a viagem.' }, { status: 500 })
+  }
+}

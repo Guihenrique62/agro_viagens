@@ -44,28 +44,19 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
   const totalPessoalExpenses = trip.trip_expenses
   .filter(exp => exp.typePayment === 'Pessoal')
   .reduce((sum, exp) => sum + exp.value, 0);
-
-  let total = trip.advance_value - totalExpenses
-  let payOrRecive = ''
-  
+ 
 
   const calculateKMTransport = trip.trip_transports.some(
-    trp => trp.transport.name === 'Carro Próprio' && trp.transport.calculateKM
+    trp => trp.transport.calculateKM
   );
 
   let valorKm = 0
 
   if(calculateKMTransport){
     valorKm = (trip.endKM - trip.startKM) * trip.parameters_km.value
-    total = trip.advance_value - (totalExpenses + valorKm)
   }
   
 
-  if (total <= 0){
-    payOrRecive = 'Receber'
-  }else{
-    payOrRecive = 'Devolver'
-  }
 
   const formatedDate = (date: any) => {
       const [year, month, day] = new Date(date).toISOString().split('T')[0].split('-');
@@ -186,7 +177,7 @@ const html = `
   </head>
   <body>
     <div class="container-finish">
-      <h2 class="text-center">Despesas da viagem - Relatório financeiro</h2>
+      <h2 class="text-center">Despesas da viagem - Relatório Cliente</h2>
 
       <div class="header">
         <div class="logo">
@@ -228,16 +219,12 @@ const html = `
             <tr>
               <th>KM rodados</th>
               <th>Valor do KM</th>
-              <th>Valor de Adiantamento</th>
-              <th>${payOrRecive}</th>
             </tr>
           </thead>
           <tbody>
             <tr>
               <td>${(trip.endKM - trip.startKM).toFixed(1)}</td>
               <td>${trip.parameters_km.value.toFixed(2)}</td>
-              <td>R$ ${trip.advance_value.toFixed(2).replace('.', ',')}</td>
-              <td>R$ ${Math.abs(total).toFixed(2).replace('.', ',')}</td>
             </tr>
           </tbody>
         </table>

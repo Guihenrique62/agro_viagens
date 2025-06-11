@@ -48,6 +48,7 @@ const TripsPage = () => {
     user: {
       id: '',
       name: '',
+      email: ''
     },
     parameters_km: {
       id: '',
@@ -405,6 +406,7 @@ const TripsPage = () => {
             tripFinishDialog = {tripFinishDialog}
             setTripFinishDialog = {setTripFinishDialog}
             handleFinishTrip = {handleFinishTrip}
+            trip = {trip}
           />
 
         </div>

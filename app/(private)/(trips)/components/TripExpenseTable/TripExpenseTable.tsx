@@ -27,12 +27,9 @@ export default function TripExpenseTable({
   );
 
    const dateBodyTemplate = (rowData: TripExpense) => {
-       if (!rowData.date) return null;
-       const date = new Date(rowData.date);
-       const day = String(date.getDate()).padStart(2, '0');
-       const month = String(date.getMonth() + 1).padStart(2, '0');
-       const year = date.getFullYear();
-       return <span>{`${day}/${month}/${year}`}</span>;
+
+    const [year, month, day] = new Date(rowData.date).toISOString().split('T')[0].split('-');
+    return <span>{day}/{month}/{year}</span>;
      };
 
     const confirmDeleteExpense = (trip: TripExpense) => {

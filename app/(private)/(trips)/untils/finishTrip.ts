@@ -1,4 +1,5 @@
 import { Trip } from "../trips.types";
+import nodemailer from 'nodemailer'
 
 
 export const finishTrip = async (
@@ -10,19 +11,18 @@ export const finishTrip = async (
   emptyTrip: any,
   toast: any,
 ) => {
-  console.log(trip)
   if (!trip.id) return;
 
     try {
 
       const res = await fetch(`/api/trips/${trip.id}`, {
-        method: 'PATCH',
+        method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         credentials: 'include',
         body: JSON.stringify({
-          
+
           status: 'Finalizada', // Finalizada
 
         }),
@@ -39,6 +39,17 @@ export const finishTrip = async (
         });
         return;
       }
+
+      await fetch(`/api/sendFinishEmail`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify({
+          userName: trip.user.name
+        })
+      });
   
       toast.current?.show({
         severity: 'success',

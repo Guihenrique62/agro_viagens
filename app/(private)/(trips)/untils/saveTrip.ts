@@ -14,6 +14,7 @@ export const saveTrip = async (
 ) => {
 
   const findIndexById = (id: number) => trips.findIndex((u) => u.id === id);
+  console.log(trip)
 
   setSubmitted(true);
 

@@ -23,6 +23,7 @@ export interface Trip {
   user: {
     id: string;
     name: string;
+    email: string;
   }
 
   parameters_km: {

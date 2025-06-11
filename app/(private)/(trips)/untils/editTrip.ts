@@ -15,6 +15,8 @@ export const editTrip = async (
 ) => {
   if (!trip.id) return;
 
+  console.log('Edit', trip)
+
     try {
       // Buscar o parâmetro correspondente à startDate
       const paramRes = await fetch('/api/parameterKm/currentParameter', {
@@ -49,9 +51,9 @@ export const editTrip = async (
           escort: trip.escort,
           type: trip.type,
           advance_value: trip.advance_value,
-          startDate: trip.startDate,
-          endDate: trip.endDate,
-          status: 'EmAndamento', // ou outro valor padrão
+          startDate: formatDateToISO(trip.startDate),
+          endDate: formatDateToISO(trip.endDate),
+          status: 'EmAndamento', 
           parameters_kmId: parameterId,
           transportIds: selectedTransports,
           startKM: trip.startKM,
