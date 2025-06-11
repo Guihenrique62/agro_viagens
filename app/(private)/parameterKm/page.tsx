@@ -1,27 +1,22 @@
 /* eslint-disable @next/next/no-img-element */
 'use client';
 import { Button } from 'primereact/button';
-import { Checkbox } from 'primereact/checkbox';
-import { Column } from 'primereact/column';
+
 import { DataTable } from 'primereact/datatable';
 import { Dialog } from 'primereact/dialog';
-import { Dropdown } from 'primereact/dropdown';
-import { InputNumber } from 'primereact/inputnumber';
-import { InputText } from 'primereact/inputtext';
 import { ProgressSpinner } from 'primereact/progressspinner';
 import { Toast } from 'primereact/toast';
 import { Toolbar } from 'primereact/toolbar';
-import { classNames } from 'primereact/utils';
-import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { InputMask, InputMaskChangeEvent } from 'primereact/inputmask';
+import React, { useEffect, useRef, useState } from 'react';
 import { FilterMatchMode } from 'primereact/api';
+import { Parameter } from './parameter.types';
+import ParameterTable from './components/ParameterTable/ParameterTable';
+import { getParameters } from './untils/getParameters';
+import { saveParameter } from './untils/saveParameter';
+import { editParameter } from './untils/editParameter';
+import { deleteParameter } from './untils/deleteParameter';
+import ParameterDialog from './components/ParameterDialog/ParameterDialog';
 
-interface Parameter {
-  id: number;
-  startDate: string;
-  endDate: string;
-  value: number;
-}
 
 
 const ParameterPage = () => {
@@ -46,7 +41,6 @@ const ParameterPage = () => {
   const [editParameterDialog, setEditParameterDialog] = useState(false);
 
   
-  const [selectedParameters, setSelectedParameters] = useState(null);
   const [submitted, setSubmitted] = useState(false);
 
   const toast = useRef<Toast>(null);
@@ -54,56 +48,8 @@ const ParameterPage = () => {
   const [loading, setLoading] = useState(false);
 
 
-  const onGlobalFilterChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-  const value = e.target.value;
-  let _filters = { ...filters };
-
-  _filters['global'].value = value;
-
-  setFilters(_filters);
-};
-
-
-  // BUsca a lista de despesas
-  const fetchParameters = async () => {
-    try {
-
-      const res = await fetch('/api/parameterKm', {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        credentials: 'include',
-      });
-
-      const data = await res.json();
-
-      if (!res.ok) {
-        console.error('Erro ao buscar os parametros:', data.error);
-        toast.current?.show({
-          severity: 'error',
-          summary: 'Erro',
-          detail: 'Erro ao buscar os Paramêtros .',
-          life: 3000,
-        });
-        return;
-      }
-
-      // Formatar datas no padrão dd/mm/yyyy
-      const formatted = data.map((param : Parameter) => ({
-        ...param,
-        startDate: new Date(param.startDate).toLocaleDateString('pt-BR'),
-        endDate: new Date(param.endDate).toLocaleDateString('pt-BR'),
-      }));
-
-      setParameters(formatted);
-    } catch (err) {
-      console.error('Erro inesperado:', err);
-    }
-  };
-
   useEffect(() => {
-    fetchParameters();
+    getParameters(toast,setParameters);
   }, []);
 
   //Abre o dialogo de novo despesa
@@ -127,7 +73,7 @@ const ParameterPage = () => {
   };
 
   // esconde o dialogo de editar expense
-  const hideEditUserDialog = () => {
+  const hideEditDialog = () => {
     setSubmitted(false);
     setEditParameterDialog(false);
   };
@@ -135,202 +81,50 @@ const ParameterPage = () => {
   // esconde o dialogo de deletar Parameter
   const hideDeleteProductDialog = () => setDeleteParameterDialog(false);
 
-  function formatDateToISO(dateStr: string): string {
-    const [day, month, year] = dateStr.split('/');
-    return `${year}-${month}-${day}`; // yyyy-MM-dd
+
+
+  // Salva o parametro
+  const handleSaveParameter = () => {
+    saveParameter(
+      setSubmitted,
+      parameter,
+      parameters,
+      setParameter,
+      setParameters,
+      setParameterDialog,
+      toast,
+      emptyParameter
+    )
   }
 
 
-  // Salva a despesa
-  const saveParameter = async () => {
-    setSubmitted(true);
-
-  if (parameter.value, parameter.startDate, parameter.endDate) {
-    let _parameters = [...parameters];
-    let _parameter = { ...parameter };
-
-    if (parameter.id) {
-      const index = findIndexById(parameter.id);
-      _parameters[index] = _parameter;
-      toast.current?.show({
-        severity: 'success',
-        summary: 'Sucesso',
-        detail: 'Paramêtro Atualizado',
-        life: 3000,
-      });
-      setParameters(_parameters);
-    } else {
-      try {
-        const res = await fetch('/api/parameterKm', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          credentials: 'include',
-          body: JSON.stringify({
-            startDate: formatDateToISO(parameter.startDate),
-            endDate: formatDateToISO(parameter.endDate),
-            value: parameter.value,
-          }),
-        });
-
-        if (!res.ok) {
-          const errorData = await res.json();
-          throw new Error(errorData.message || 'Erro ao criar Paramêtro');
-        }
-
-        const createdParameter = await res.json();
-        _parameter.id = createdParameter.id; // assumindo que o back retorna o ID
-        _parameters.push(_parameter);
-
-        toast.current?.show({
-          severity: 'success',
-          summary: 'Sucesso',
-          detail: 'Paramêtro Criado',
-          life: 3000,
-        });
-
-        setParameters(_parameters);
-      } catch (err: any) {
-        console.error('Erro ao criar Paramêtro:', err);
-        toast.current?.show({
-          severity: 'error',
-          summary: 'Erro',
-          detail: err.message || 'Erro ao criar Paramêtro',
-          life: 3000,
-        });
-        return;
-      }
-    }
-
-    setParameterDialog(false);
-    setParameter(emptyParameter);
+  // Edita o parametro
+  const handleEditParameter = () => {
+    editParameter(
+      parameter,
+      parameters,
+      setEditParameterDialog,
+      setParameter,
+      setParameters,
+      toast,
+      emptyParameter
+    )
   }
-  };
-
-  const parseBrDateToIso = (dateStr: string) => {
-    const [day, month, year] = dateStr.split('/');
-    return new Date(`${year}-${month}-${day}`).toISOString(); // ou apenas `${year}-${month}-${day}`
-  };
-
-
-  // Edita a Despesa
-  const editParameter = async () => {
-    if (!parameter.id) return;
-  
-    try {
-      const res = await fetch(`/api/parameterKm/${parameter.id}`, {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        credentials: 'include',
-        body: JSON.stringify({
-          startDate: formatDateToISO(parameter.startDate),
-          endDate: formatDateToISO(parameter.endDate),
-          value: parameter.value,
-        }),
-      });
-  
-      const data = await res.json();
-
-      if (!res.ok) {
-        toast.current?.show({
-          severity: 'error',
-          summary: 'Erro',
-          detail: data.message || 'Erro ao editar o Paramêtro.',
-          life: 3000,
-        });
-        return;
-      }
-  
-      toast.current?.show({
-        severity: 'success',
-        summary: 'Sucesso',
-        detail: 'Paramêtro atualizada com sucesso.',
-        life: 3000,
-      });
-  
-      // Atualiza lista local
-      const updatedParameters = parameters.map((u) => (u.id === parameter.id ? data : u));
-
-      // Formatar datas no padrão dd/mm/yyyy
-      const formattedData = {
-        ...data,
-        startDate: new Date(data.startDate).toLocaleDateString('pt-BR'),
-        endDate: new Date(data.endDate).toLocaleDateString('pt-BR'),
-      };
-
-      setParameters(updatedParameters.map((u) =>
-        u.id === formattedData.id ? formattedData : u
-      ));
-
-      setEditParameterDialog(false);
-      setParameter(emptyParameter);
-  
-    } catch (err) {
-      console.error('Erro ao editar Paramêtro:', err);
-      toast.current?.show({
-        severity: 'error',
-        summary: 'Erro',
-        detail: 'Erro inesperado ao editar Paramêtro.',
-        life: 3000,
-      });
-    }
-  };
   
   // Deleta o parametro
-  const deleteParameter = async () => {
-    if (!parameter.id) return;
-    setLoading(true);
-    try {
-      const res = await fetch(`/api/parameterKm/${parameter.id}`, {
-        method: 'DELETE',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        credentials: 'include',
-      });
-  
-      const data = await res.json();
-  
-      if (!res.ok) {
-        toast.current?.show({
-          severity: 'error',
-          summary: 'Erro',
-          detail: data.error || 'Erro ao Excluir a Paramêtro.',
-          life: 3000,
-        });
-        return;
-      }
-  
-      toast.current?.show({
-        severity: 'success',
-        summary: 'Sucesso',
-        detail: 'Paramêtro excluida com sucesso.',
-        life: 3000,
-      });
-  
-      // Atualiza lista local
-      const updatedParameters = parameters.map((u) => (u.id === parameter.id ? data : u));
-      setParameters(updatedParameters);
-      setParameter(data);
-      setSelectedParameters(null);
-      setDeleteParameterDialog(false);
-      fetchParameters()
-      setParameter(emptyParameter);
-      setLoading(false)
-  
-    } catch (err) {
-      console.error('Erro ao excluir Paramêtro:', err);
-      toast.current?.show({
-        severity: 'error',
-        summary: 'Erro',
-        detail: 'Erro inesperado ao excluir Paramêtro.',
-        life: 3000,
-      });
-    }
-  };
+  const handleDeleteParameter = () => {
+    deleteParameter(
+      parameter,
+      parameters,
+      setLoading,
+      setParameters,
+      setParameter,
+      setDeleteParameterDialog,
+      getParameters,
+      toast,
+      emptyParameter
+    )
+  }
 
 
   // Confirma a exclusão do despesa
@@ -339,95 +133,38 @@ const ParameterPage = () => {
     setDeleteParameterDialog(true);
   };
 
-  const findIndexById = (id: number) => parameters.findIndex((u) => u.id === id);
-
-  const onInputChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement> | InputMaskChangeEvent,
-    name: string
-  ) => {
-    const val = (e.target && e.target.value) || '';
-    setParameter({ ...parameter, [name]: val });
-  };
-
-
-  const startBodyTemplate = (rowData: Parameter) => <span>{rowData.startDate}</span>;
-  const endBodyTemplate = (rowData: Parameter) => <span>{rowData.endDate}</span>;
-  const valueBodyTemplate = (rowData: Parameter) => <span>{rowData.value}</span>;
-
-  const actionBodyTemplate = (rowData: Parameter) => (
-    <>
-      <Button
-        icon="pi pi-pencil"
-        rounded
-        severity="info"
-        className="mr-2"
-        onClick={() => openEdit(rowData)}
-      />
-      <Button
-        icon="pi pi-trash"
-        rounded
-        severity="danger"
-        onClick={() => confirmDeleteProduct(rowData)}
-      />
-    </>
-  );
-
   const leftToolbarTemplate = () => (
     <div className="my-2">
       <Button label="Novo Paramêtro" icon="pi pi-plus" severity="success" className="mr-2" onClick={openNew} />
     </div>
   );
 
-
-  
-
   const parameterDialogFooter = (
     <>
       <Button label="Cancelar" icon="pi pi-times" text onClick={hideDialog} />
-      <Button label="Salvar" icon="pi pi-check" text onClick={saveParameter} />
+      <Button label="Salvar" icon="pi pi-check" text onClick={handleSaveParameter} />
     </>
   );
 
   const editParameterDialogFooter = (
     <>
-      <Button label="Cancelar" icon="pi pi-times" text onClick={hideEditUserDialog} />
-      <Button label="Salvar" icon="pi pi-check" text onClick={editParameter} />
+      <Button label="Cancelar" icon="pi pi-times" text onClick={hideEditDialog} />
+      <Button label="Salvar" icon="pi pi-check" text onClick={handleEditParameter} />
     </>
   );
 
   const deleteParameterDialogFooter = (
     <>
       <Button label="Não" icon="pi pi-times" text onClick={hideDeleteProductDialog} />
-      <Button label="Sim" icon="pi pi-check" text onClick={deleteParameter} />
+      <Button label="Sim" icon="pi pi-check" text onClick={handleDeleteParameter} />
     </>
   );
 
-  const header = () => {
-   return (
-      <div className="flex flex-column md:flex-row md:justify-content-between md:align-items-center">
-        <h5 className="m-0">Parâmetros por KM</h5>
-        <span className="block mt-2 md:mt-0 p-input-icon-left">
-          <i className="pi pi-search" />
-          <InputText
-            type="search"
-            value={filters.global.value}
-            onChange={onGlobalFilterChange}
-            placeholder="Buscar..."
-          />
-        </span>
-      </div>
-    )
-  }
+  
 
 
-  const safeParameters = parameters.map(p => ({
-    ...p,
-    startDate: p.startDate ?? '',
-    endDate: p.endDate ?? '',
-    value: p.value ?? 0,
-  }));
 
-  console.log(safeParameters)
+
   return (
     <div className="grid crud-demo">
       <div className="col-12">
@@ -446,118 +183,43 @@ const ParameterPage = () => {
             </div>
           ) : (
             
-            <DataTable
-              ref={dt}
-              value={safeParameters}
-              selection={selectedParameters}
-              onSelectionChange={(e) => setSelectedParameters(e.value as any)}
+            <ParameterTable 
+              parameters={parameters}
+              openEdit={openEdit}
+              confirmDeleteProduct={confirmDeleteProduct}
               filters={filters}
-              filterDisplay="row"
-              globalFilterFields={['startDate', 'endDate']}
-              paginator
-              rows={5}
-              rowsPerPageOptions={[5, 10, 25]}
-              className="datatable-responsive"
-              paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport RowsPerPageDropdown"
-              currentPageReportTemplate="Mostrando {first} até {last} de {totalRecords} Paramêtros"
-              emptyMessage="Nenhum paramêtro encontrado."
-              header={header}
-              responsiveLayout="scroll"
-            >
-              <Column field="startDate" header="Data inicio" sortable body={startBodyTemplate} headerStyle={{ minWidth: '15rem' }} />
-              <Column field="endDate" header="Data fim" body={endBodyTemplate} sortable headerStyle={{ minWidth: '10rem' }} />
-              <Column field="value" header="Valor do KM" body={valueBodyTemplate} sortable headerStyle={{ minWidth: '10rem' }} />
-              <Column body={actionBodyTemplate} header="Ações" headerStyle={{ minWidth: '10rem' }} />
-            </DataTable>
+              setFilters={setFilters}
+              dt={dt}
+            /> 
+           
           )}
 
-          <Dialog visible={parameterDialog} style={{ width: '450px' }} header="Novo paramêtro" modal className="p-fluid" footer={parameterDialogFooter} onHide={hideDialog}>
-            <div className="field">
-              <label htmlFor="startDate">Data inicio</label>
 
-              <InputMask 
-              value={parameter.startDate} 
-              onChange={(e) => onInputChange(e, 'startDate')}
-              mask="99/99/9999" placeholder="dd/mm/yyyy" 
-              slotChar="dd/mm/yyyy" 
-              className={classNames({ 'p-invalid': submitted && !parameter.startDate })}
-              />
+          {/* Salvar Parametro */}
 
-              {submitted && !parameter.startDate && <small className="p-invalid">A data inicio é  obrigatório</small>}
-            </div>
+          <ParameterDialog 
+            parameterDialog={parameterDialog}
+            footer= {parameterDialogFooter}
+            hideDialog= {hideDialog}
+            parameter= {parameter}
+            setParameter={setParameter}
+            submitted={submitted}
+            header={'Salvar Parametro'}
+          />
 
-            <div className="field">
-              <label htmlFor="endDate">Data Fim</label>
-              <InputMask 
-                value={parameter.endDate} 
-                onChange={(e) => onInputChange(e, 'endDate')}
-                mask="99/99/9999" placeholder="dd/mm/yyyy"  
-                slotChar="dd/mm/yyyy" 
-                className={classNames({ 'p-invalid': submitted && !parameter.endDate })}
-              />
-              {submitted && !parameter.endDate && <small className="p-invalid">A data fim é obrigatório</small>}
-            </div>
 
-            <div className="field">
-              <label htmlFor="value">Valor do KM</label>
-              <InputNumber 
-                id='value'
-                value={parameter.value} 
-                onChange={(e) => setParameter({ ...parameter, value: e.value ?? 0 })}
-                required
-                autoFocus
-                minFractionDigits={2} maxFractionDigits={2}
-                className={classNames({ 'p-invalid': submitted && !parameter.value })}
-              />
+          {/* Editar Parametro */}
+
+          <ParameterDialog 
+            parameterDialog={editParameterDialog}
+            footer= {editParameterDialogFooter}
+            hideDialog= {hideEditDialog}
+            parameter= {parameter}
+            setParameter={setParameter}
+            submitted={submitted}
+            header={'Editar Parametro'}
           
-              {submitted && !parameter.value && <small className="p-invalid">O valor do KM é obrigatório</small>}
-            </div>
-
-          </Dialog>
-
-          <Dialog visible={editParameterDialog} style={{ width: '450px' }} header="Editar Despesa" modal className="p-fluid" footer={editParameterDialogFooter} onHide={hideEditUserDialog}>
-            <div className="field">
-              <label htmlFor="startDate">Data inicio</label>
-
-              <InputMask 
-              value={parameter.startDate} 
-              onChange={(e) => onInputChange(e, 'startDate')}
-              mask="99/99/9999" placeholder="dd/mm/yyyy" 
-              slotChar="dd/mm/yyyy" 
-              className={classNames({ 'p-invalid': submitted && !parameter.startDate })}
-              />
-
-              {submitted && !parameter.startDate && <small className="p-invalid">A data inicio é  obrigatório</small>}
-            </div>
-
-            <div className="field">
-              <label htmlFor="endDate">Data Fim</label>
-              <InputMask 
-                value={parameter.endDate} 
-                onChange={(e) => onInputChange(e, 'endDate')}
-                mask="99/99/9999" placeholder="dd/mm/yyyy"  
-                slotChar="dd/mm/yyyy" 
-                className={classNames({ 'p-invalid': submitted && !parameter.endDate })}
-              />
-              {submitted && !parameter.endDate && <small className="p-invalid">A data fim é obrigatório</small>}
-            </div>
-
-            <div className="field">
-              <label htmlFor="value">Valor do KM</label>
-              <InputNumber 
-                id='value'
-                value={parameter.value} 
-                onChange={(e) => setParameter({ ...parameter, value: e.value ?? 0 })}
-                required
-                autoFocus
-                minFractionDigits={2} maxFractionDigits={2}
-                className={classNames({ 'p-invalid': submitted && !parameter.value })}
-              />
-          
-              {submitted && !parameter.value && <small className="p-invalid">O valor do KM é obrigatório</small>}
-            </div>
-              
-          </Dialog>
+          />
 
           <Dialog visible={deleteParameterDialog} style={{ width: '450px' }} header="Confirmar" modal footer={deleteParameterDialogFooter} onHide={hideDeleteProductDialog}>
             <div className="confirmation-content">

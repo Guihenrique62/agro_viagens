@@ -56,6 +56,8 @@ const TripsPage = () => {
       endDate: '',
     },
     trip_expenses: [],
+    endKM: 0,
+    startKM: 0
   };
 
   const emptyExpense: TripExpense = {

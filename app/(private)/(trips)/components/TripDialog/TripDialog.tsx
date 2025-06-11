@@ -59,6 +59,17 @@ export const TripDialog = ({
         />
         {submitted && !trip.client && <small className="p-invalid">Cliente é obrigatório!</small>}
       </div>
+
+      <div className="field">
+        <label htmlFor="escort">Acompanhante</label>
+        <InputText
+          id="escort"
+          value={trip.escort}
+          onChange={(e) => onInputChange(e, 'escort')}
+        />
+      </div>
+
+
       <div className="field">
 
         <label htmlFor="reason">Motivo da Viagem</label>
@@ -72,14 +83,6 @@ export const TripDialog = ({
         {submitted && !trip.reason && <small className="p-invalid">Motivo da Viagem é obrigatório!</small>}
       </div>
 
-      <div className="field">
-        <label htmlFor="escort">Acompanhante</label>
-        <InputText
-          id="escort"
-          value={trip.escort}
-          onChange={(e) => onInputChange(e, 'escort')}
-        />
-      </div>
 
       <div className="field">
         <label htmlFor="type">Tipo da Viagem</label>
@@ -110,6 +113,24 @@ export const TripDialog = ({
           className={classNames({ 'p-invalid w-full md:w-20rem': submitted && !trip.transports })}
         />
         {submitted && !trip.transports && <small className="p-invalid">Transporte é obrigatório</small>}
+      </div>
+
+      <div className="field">
+        <label htmlFor="startKM">KM inicial</label>
+        <InputNumber
+          id='startKM'
+          value={trip.startKM}
+          onChange={(e) => setTrip({ ...trip, startKM: e.value ?? 0 })}
+          autoFocus
+        />
+
+         <label htmlFor="endKM">KM Final</label>
+          <InputNumber
+            id='endKM'
+            value={trip.endKM}
+            onChange={(e) => setTrip({ ...trip, endKM: e.value ?? 0 })}
+            autoFocus
+          />
       </div>
 
       <div className="field">

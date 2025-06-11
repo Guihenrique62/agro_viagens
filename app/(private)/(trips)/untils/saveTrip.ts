@@ -71,6 +71,8 @@ export const saveTrip = async (
             status: 'EmAndamento', // ou outro valor padrão
             parameters_kmId: parameterId,
             transportIds: selectedTransports,
+            startKM: trip.startKM,
+            endKM: trip.endKM
           }),
         });
 

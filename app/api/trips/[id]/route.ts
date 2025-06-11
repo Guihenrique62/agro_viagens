@@ -18,7 +18,9 @@ const updateTripSchema = z.object({
     message: 'Data de fim inválida',
   }),
   parameters_kmId: z.number().int('ID de parâmetros de KM inválido'),
-  transportIds: z.array(z.number().int('ID de transporte inválido')).min(1, 'Selecione ao menos um transporte')
+  transportIds: z.array(z.number().int('ID de transporte inválido')).min(1, 'Selecione ao menos um transporte'),
+  startKM: z.number(),
+  endKM: z.number(),
 })
 
 export async function PATCH(req: NextRequest, {params}: {params: Promise<{ id: string }>}) {
@@ -54,7 +56,9 @@ export async function PATCH(req: NextRequest, {params}: {params: Promise<{ id: s
       startDate,
       endDate,
       parameters_kmId,
-      transportIds
+      transportIds,
+      startKM,
+      endKM
     } = parsed.data
 
     const existingTrip = await prisma.trips.findUnique({ where: { id: tripId } })
@@ -89,7 +93,9 @@ export async function PATCH(req: NextRequest, {params}: {params: Promise<{ id: s
         advance_value,
         startDate: new Date(startDate),
         endDate: new Date(endDate),
-        parameters_kmId
+        parameters_kmId,
+        startKM,
+        endKM
       }
     })
 

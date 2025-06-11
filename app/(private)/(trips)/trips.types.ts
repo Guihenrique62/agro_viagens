@@ -11,6 +11,8 @@ export interface Trip {
   endDate: string;
   status: string;
   parameters_kmId: string;
+  startKM: number;
+  endKM: number;
   transports: {
     id: number;
     name: string;

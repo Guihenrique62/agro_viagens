@@ -87,6 +87,8 @@ model trips {
   advance_value Float
   startDate DateTime
   endDate DateTime
+  startKM Int
+  endKM Int
   status TripStatus @default(EmAndamento)
   parameters_kmId Int
 

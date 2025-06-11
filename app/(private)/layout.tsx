@@ -7,6 +7,7 @@ interface AppLayoutProps {
 
 export const metadata: Metadata = {
     title: 'Agro Viagens',
+    metadataBase: new URL('http://localhost:3000'),
     description: '',
     robots: { index: false, follow: false },
     viewport: { initialScale: 1, width: 'device-width' },

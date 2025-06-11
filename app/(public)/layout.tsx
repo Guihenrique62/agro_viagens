@@ -7,6 +7,7 @@ interface SimpleLayoutProps {
 }
 
 export const metadata: Metadata = {
+    metadataBase: new URL('http://localhost:3000'),
     title: 'Agro Viagens',
     description: 'Agro Viagens - A sua plataforma de gestão financeira',
 };

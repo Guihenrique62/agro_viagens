@@ -4,7 +4,7 @@ import { InputText } from "primereact/inputtext";
 import { ProgressSpinner } from "primereact/progressspinner"
 import { Trip } from "../../trips.types";
 import { Button } from "primereact/button";
-import { reportDownload } from "../../untils/reportDownload";
+import { getReportFinancial } from "../../untils/getReports";
 import { ListBox } from "primereact/listbox";
 import { useRef, useState } from "react";
 import { SplitButton } from "primereact/splitbutton";
@@ -55,7 +55,7 @@ export const TripTable = ({
     </div>
   );
 
-const actionBodyTemplate = (rowData: Trip) => {
+const ActionBodyTemplate = (rowData: Trip) => {
   const actionsMenuRef = useRef<any>(null);
   const downloadsMenuRef = useRef<any>(null);
 
@@ -75,18 +75,23 @@ const actionBodyTemplate = (rowData: Trip) => {
       label: 'Excluir',
       icon: 'pi pi-trash',
       command: () => confirmDeleteTrip(rowData)
+    },
+    {
+      label: 'Despesas',
+      icon: 'pi pi-cart-plus',
+      command: () => openExpenses(rowData)
     }
   ];
 
   // Menu de downloads (2 opções como solicitado)
   const downloadItems = [
     {
-      label: 'Download Relatório Padrão',
+      label: 'Relatório Financeiro',
       icon: 'pi pi-download',
-      command: () => reportDownload(rowData)
+      command: () => getReportFinancial(rowData)
     },
     {
-      label: 'Download Relatório Detalhado',
+      label: 'Relatório Cliente',
       icon: 'pi pi-download',
       command: () => console.log('Implementar download detalhado') // Placeholder para a segunda função
     }
@@ -153,7 +158,7 @@ const actionBodyTemplate = (rowData: Trip) => {
               key={`download-${i}`}
               label={item.label}
               icon={item.icon}
-              className="p-button-text p-button-sm w-full"
+              className="p-button-text p-button-sm"
               onClick={(e) => {
                 e.stopPropagation();
                 item.command();
@@ -234,7 +239,7 @@ const actionBodyTemplate = (rowData: Trip) => {
       <Column field="client" header="Cliente" sortable body={clientBodyTemplate} headerStyle={{ minWidth: '15rem' }} />
       <Column field="startDate" header="Data Inicio" body={startDateBodyTemplate} sortable />
       <Column field="status" header="Status" body={statusBodyTemplate} sortable headerStyle={{ minWidth: '10rem' }} />
-      <Column body={actionBodyTemplate} header="Ações" headerStyle={{ minWidth: '10rem' }} />
+      <Column body={ActionBodyTemplate} header="Ações" headerStyle={{ minWidth: '10rem' }} />
     </DataTable>
   )
 }

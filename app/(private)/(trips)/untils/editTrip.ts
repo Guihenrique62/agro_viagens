@@ -53,7 +53,9 @@ export const editTrip = async (
           endDate: trip.endDate,
           status: 'EmAndamento', // ou outro valor padrão
           parameters_kmId: parameterId,
-          transportIds: selectedTransports 
+          transportIds: selectedTransports,
+          startKM: trip.startKM,
+          endKM: trip.endKM
         }),
       });
   

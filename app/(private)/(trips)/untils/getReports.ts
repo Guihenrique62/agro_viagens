@@ -1,4 +1,4 @@
-export const reportDownload = async (rowdata: any) => {
+export const getReportFinancial = async (rowdata: any) => {
   try {
     const res = await fetch(`/api/trips/${rowdata.id}/report`, {
       method: 'GET',

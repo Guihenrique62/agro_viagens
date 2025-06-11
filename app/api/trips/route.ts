@@ -18,7 +18,10 @@ const tripSchema = z.object({
     message: 'Data de fim inválida',
   }),
   parameters_kmId: z.number().int('ID de parâmetros de KM inválido'),
-  transportIds: z.array(z.number().int('ID de transporte inválido')).min(1, 'Selecione ao menos um transporte')
+  transportIds: z.array(z.number().int('ID de transporte inválido')).min(1, 'Selecione ao menos um transporte'),
+  startKM: z.number(),
+  endKM: z.number(),
+
 })
 
 export async function POST(req: NextRequest) {
@@ -46,7 +49,9 @@ export async function POST(req: NextRequest) {
       startDate,
       endDate,
       parameters_kmId,
-      transportIds 
+      transportIds,
+      startKM,
+      endKM
     } = parsed.data
 
 
@@ -86,7 +91,9 @@ export async function POST(req: NextRequest) {
         endDate: new Date(endDate),
         userId: authenticatedUser.userId,
         parameters_kmId,
-        status: 'EmAndamento'
+        status: 'EmAndamento',
+        startKM,
+        endKM
       },
       select: {
         id: true,
@@ -101,6 +108,8 @@ export async function POST(req: NextRequest) {
         userId: true,
         parameters_kmId: true,
         status: true,
+        startKM: true,
+        endKM: true,
         user : {
           select: {
             name: true,
