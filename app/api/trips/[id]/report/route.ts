@@ -35,7 +35,7 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
   }
 
   // Calcular totais
-  const totalExpenses = trip.trip_expenses.reduce((sum, exp) => sum + exp.value, 0)
+  const totalExpenses = trip.trip_expenses.reduce((sum: any, exp: any) => sum + exp.value, 0)
 
   const totalAgrocontarExpenses = trip.trip_expenses
   .filter(exp => exp.typePayment === 'Agrocontar')
