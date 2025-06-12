@@ -146,7 +146,7 @@ export const TripDialog = ({
       </div>
 
       <div className="field">
-        <label htmlFor="startDate">Data inicio</label>
+        <label htmlFor="startDate">Data Início</label>
 
         <InputMask
           value={trip.startDate}

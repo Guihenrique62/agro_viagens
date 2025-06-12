@@ -42,7 +42,7 @@ export async function POST(req: NextRequest) {
               <p style="font-size: 16px; color: #333;">Prezados,</p>
               
               <p style="font-size: 16px; color: #333;">
-                Informamos que a viagem realizada por <strong>${userName}</strong> foi concluída com êxito e seu status foi atualizado na plataforma AgroFinances.
+                Informamos que a viagem realizada por <strong>${userName}</strong> foi concluída com êxito e seu status foi atualizado na plataforma Agro Viagens.
               </p>
 
               <p style="font-size: 16px; color: #333;">

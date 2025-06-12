@@ -1,19 +1,21 @@
 import { Trip } from "../trips.types";
 import nodemailer from 'nodemailer'
+import { getTrips } from "./getTrips";
 
 
 export const finishTrip = async (
   trip: Trip,
-  trips: Trip[],
   setTrips: any,
   setTrip: any,
   setTripFinishDialog: any,
   emptyTrip: any,
   toast: any,
+  setLoading: any
 ) => {
   if (!trip.id) return;
 
     try {
+      setLoading(true)
 
       const res = await fetch(`/api/trips/${trip.id}`, {
         method: 'POST',
@@ -40,7 +42,7 @@ export const finishTrip = async (
         return;
       }
 
-      await fetch(`/api/sendFinishEmail`, {
+      const resEmail = await fetch(`/api/sendFinishEmail`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -50,6 +52,16 @@ export const finishTrip = async (
           userName: trip.user.name
         })
       });
+
+       if (!resEmail.ok) {
+        toast.current?.show({
+          severity: 'error',
+          summary: 'Erro',
+          detail: data.error || 'Erro ao enviar e-mail de finalização para o ADM',
+          life: 3000,
+        });
+        return;
+      }
   
       toast.current?.show({
         severity: 'success',
@@ -58,20 +70,19 @@ export const finishTrip = async (
         life: 3000,
       });
   
-      // Atualiza lista local
-      const updatedTrips = trips.map((u) => (u.id === trip.id ? data : u));
-      setTrips(updatedTrips);
-      setTrip(data);
-      setTripFinishDialog(false);
-      setTrip(emptyTrip);
   
     } catch (err) {
       console.error('Erro ao Finalizar Viagem:', err);
       toast.current?.show({
         severity: 'error',
         summary: 'Erro',
-        detail: 'Erro inesperado ao editar Viagem.',
+        detail: 'Erro inesperado ao finalizar Viagem.',
         life: 6000,
       });
     }
+
+    setTripFinishDialog(false);
+    setTrip(emptyTrip);
+    await getTrips(toast, setTrips);
+    setLoading(false)
   };

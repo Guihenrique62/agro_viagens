@@ -1,5 +1,6 @@
 import { formatDateToISO } from "../../untils/formatDateToISO";
 import { Trip } from "../trips.types";
+import { getTrips } from "./getTrips";
 
 export const saveTrip = async (
   trip: Trip,
@@ -11,6 +12,7 @@ export const saveTrip = async (
   toast: any,
   setSubmitted: (submitted: boolean) => void,
   selectedTransports: any,
+  setLoading: any
 ) => {
 
   const findIndexById = (id: number) => trips.findIndex((u) => u.id === id);
@@ -34,6 +36,8 @@ export const saveTrip = async (
       setTrips(_trips);
     } else {
       try {
+
+        setLoading(true)
         // Buscar o parâmetro correspondente à startDate
         const paramRes = await fetch('/api/parameterKm/currentParameter', {
           method: 'POST',
@@ -108,5 +112,7 @@ export const saveTrip = async (
 
     setTripDialog(false);
     setTrip(emptyTrip);
+    await getTrips(toast, setTrips);
+    setLoading(false)
   }
 };

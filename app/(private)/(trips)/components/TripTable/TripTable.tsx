@@ -85,7 +85,7 @@ const ActionBodyTemplate = (rowData: Trip) => {
 
   // Ação de aprovação (só aparece se não estiver finalizada)
   const approveAction = {
-    label: 'Aprovar',
+    label: 'Finalizar',
     icon: 'pi pi-check',
     command: () => confirmFinishTrip(rowData)
   };
@@ -256,7 +256,7 @@ const ActionBodyTemplate = (rowData: Trip) => {
       <Column field="user.name" header="Usuario" sortable headerStyle={{ minWidth: '25rem' }} />
       <Column field="destination" header="Destino" sortable body={destinationBodyTemplate} headerStyle={{ minWidth: '15rem' }} />
       <Column field="client" header="Cliente" sortable body={clientBodyTemplate} headerStyle={{ minWidth: '15rem' }} />
-      <Column field="startDate" header="Data Inicio" body={startDateBodyTemplate} sortable />
+      <Column field="startDate" header="Data Início" body={startDateBodyTemplate} sortable />
       <Column field="status" header="Status" body={statusBodyTemplate} sortable headerStyle={{ minWidth: '10rem' }} />
       <Column body={ActionBodyTemplate} header="Ações" headerStyle={{ minWidth: '10rem' }} />
     </DataTable>

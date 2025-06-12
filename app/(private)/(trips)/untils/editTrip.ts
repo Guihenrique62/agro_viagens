@@ -1,5 +1,6 @@
 import { formatDateToBR, formatDateToISO } from "../../untils/formatDateToISO";
 import { Trip } from "../trips.types";
+import { getTrips } from "./getTrips";
 
 
 export const editTrip = async (
@@ -11,13 +12,14 @@ export const editTrip = async (
   emptyTrip: any,
   selectedTransports: any,
   toast: any,
-  setSubmitted: any
+  setSubmitted: any,
+  setloading: any
 ) => {
   if (!trip.id) return;
 
-  console.log('Edit', trip)
-
     try {
+      setloading(true)
+
       // Buscar o parâmetro correspondente à startDate
       const paramRes = await fetch('/api/parameterKm/currentParameter', {
         method: 'POST',
@@ -80,13 +82,6 @@ export const editTrip = async (
         life: 3000,
       });
   
-      // Atualiza lista local
-      const updatedTrips = trips.map((u) => (u.id === trip.id ? data : u));
-      setTrips(updatedTrips);
-      setTrip(data);
-      setEditTripDialog(false);
-      setTrip(emptyTrip);
-  
     } catch (err) {
       console.error('Erro ao editar Viagem:', err);
       toast.current?.show({
@@ -96,4 +91,9 @@ export const editTrip = async (
         life: 6000,
       });
     }
+
+    setEditTripDialog(false);
+    setTrip(emptyTrip);
+    await getTrips(toast, setTrips);
+    setloading(false)
   };

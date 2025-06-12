@@ -42,12 +42,10 @@ export const deleteTrip = async (
       });
   
       // Atualiza lista local
-      const updatedTrips = trips.map((u:any) => (u.id === trip.id ? data : u));
-      setTrips(updatedTrips);
       setTrip(data);
       setSelectedTrips(null);
       setDeleteTripDialog(false);
-      getTrips(toast, setTrips);
+      await getTrips(toast, setTrips);
       setTrip(emptyTrip);
       setLoading(false)
   

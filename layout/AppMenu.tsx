@@ -30,10 +30,10 @@ const AppMenu = () => {
                 {
                     label: 'Administração',
                     items: [
-                        { label: 'Usuarios', icon: 'pi pi-fw pi-cog', to: '/users' },
+                        { label: 'Usuários', icon: 'pi pi-fw pi-cog', to: '/users' },
                         { label: 'Transportes', icon: 'pi pi-fw pi-car', to: '/transport' },
                         { label: 'Despesas', icon: 'pi pi-fw pi-tags', to: '/expenses' },
-                        { label: 'Paramêtro KM', icon: 'pi pi-fw pi-wrench', to: '/parameterKm' },
+                        { label: 'Parâmetro KM', icon: 'pi pi-fw pi-wrench', to: '/parameterKm' },
                         
                     ]
                 },

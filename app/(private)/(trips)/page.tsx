@@ -179,6 +179,7 @@ const TripsPage = () => {
       toast,
       setSubmitted,
       selectedTransports,
+      setLoading
     )
   }
 
@@ -188,12 +189,13 @@ const TripsPage = () => {
       trip,
       trips,
       setTrips,
-      setEditTripDialog,
       setTrip,
+      setEditTripDialog,
       emptyTrip,
       selectedTransports,
       toast,
-      setSubmitted
+      setSubmitted,
+      setLoading
     )
   }
 
@@ -249,12 +251,12 @@ const TripsPage = () => {
   const handleFinishTrip = () => {
     finishTrip(
       trip,
-      trips,
       setTrips,
       setTrip,
       setTripFinishDialog,
       emptyTrip,
-      toast
+      toast,
+      setLoading
     )
   }
 
