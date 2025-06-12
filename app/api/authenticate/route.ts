@@ -95,7 +95,8 @@ export async function POST(req: NextRequest) {
       path: '/',       // Disponível em toda a aplicação
       maxAge: 60 * 60, // 1 hora de validade
       sameSite: 'lax', // Protege contra CSRF
-      secure: process.env.NODE_ENV === 'production'  // Garante que só será enviado por HTTPS em produção
+      // secure: process.env.NODE_ENV === 'production'  // Garante que só será enviado por HTTPS em produção
+      secure: false
     })
 
     return response
