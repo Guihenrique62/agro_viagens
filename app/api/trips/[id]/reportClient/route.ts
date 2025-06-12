@@ -38,11 +38,11 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
   const totalExpenses = trip.trip_expenses.reduce((sum:any, exp:any) => sum + exp.value, 0)
 
   const totalAgrocontarExpenses = trip.trip_expenses
-  .filter(exp => exp.typePayment === 'Agrocontar')
+  .filter((exp: any) => exp.typePayment === 'Agrocontar')
   .reduce((sum:any, exp:any) => sum + exp.value, 0);
 
   const totalPessoalExpenses = trip.trip_expenses
-  .filter(exp => exp.typePayment === 'Pessoal')
+  .filter((exp: any) => exp.typePayment === 'Pessoal')
   .reduce((sum:any, exp:any) => sum + exp.value, 0);
  
 
