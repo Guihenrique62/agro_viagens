@@ -45,6 +45,8 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
   .filter((exp: any) => exp.typePayment === 'Pessoal')
   .reduce((sum:any, exp:any) => sum + exp.value, 0);
  
+  const combustivelExpense = trip.trip_expenses
+  .filter((exp: any) => exp.name === 'Combustivel')
 
   const calculateKMTransport = trip.trip_transports.some(
     trp => trp.transport.calculateKM
@@ -268,15 +270,22 @@ const html = `
             </tr>
           </thead>
           <tbody>
-            ${trip.trip_expenses.map((t) => `
-              <tr>
-                <td>${t.expenses.name}</td>
-                <td>${formatedDate(t.date)}</td>
-                <td>${t.taxDocument}</td>
-                <td>${t.typePayment}</td>
-                <td>R$ ${t.value.toFixed(2).replace('.', ',')}</td>
-              </tr>
-            `).join('')}
+            ${trip.trip_expenses.map((t) => {
+              // Se for combustível E tiver cálculo por KM, não mostra essa linha
+              if (t.expenses.name === 'Combustivel' && calculateKMTransport) {
+                return '';
+              }
+              
+              return `
+                <tr>
+                  <td>${t.expenses.name}</td>
+                  <td>${formatedDate(t.date)}</td>
+                  <td>${t.taxDocument}</td>
+                  <td>${t.typePayment}</td>
+                  <td>R$ ${t.value.toFixed(2).replace('.', ',')}</td>
+                </tr>
+              `;
+            }).join('')}
           </tbody>
         </table>
       </div>

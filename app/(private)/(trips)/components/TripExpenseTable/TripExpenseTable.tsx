@@ -75,6 +75,7 @@ export default function TripExpenseTable({
       value={tripExpenses}
       tableStyle={{ minWidth: '50rem' }}
       className="p-datatable-striped"
+      emptyMessage="Nenhuma Despesa Cadastrada."
       scrollable
       scrollHeight="400px"
       header={headerExpenses}

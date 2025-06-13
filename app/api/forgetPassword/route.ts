@@ -50,7 +50,7 @@ export async function POST(req: NextRequest) {
     await transporter.sendMail({
       from: process.env.EMAIL_USER,
       to: email,
-      subject: '🔐 Redefinição de Senha - Plataforma AgroFinances',
+      subject: '🔐 Redefinição de Senha - Plataforma Agro Viagens',
       html: `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto; padding: 20px; border: 1px solid #ddd; border-radius: 10px;">
           <h2 style="color: #2E86DE;">Solicitação de Redefinição de Senha</h2>
@@ -62,7 +62,7 @@ export async function POST(req: NextRequest) {
             </a>
           </div>
           <p>Esse link é válido por <strong>30 minutos</strong>. Se você não solicitou essa mudança, ignore este e-mail.</p>
-          <p style="color: #999; font-size: 12px;">© 2025 AgroFinances. Todos os direitos reservados.</p>
+          <p style="color: #999; font-size: 12px;">© 2025 Agro Viagens. Todos os direitos reservados.</p>
         </div>
       `
     })
