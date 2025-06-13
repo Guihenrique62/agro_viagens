@@ -1,3 +1,4 @@
+import { TripExpense } from "../trips.types";
 
 export const deleteTripExpense = async (
   tripExpense: any,
@@ -41,17 +42,20 @@ export const deleteTripExpense = async (
       life: 3000,
     });
 
-    // Atualiza lista local
-    setDeleteTripExpenseDialog(false);
-    await getTrips(toast, setTrips);
-    const updatedTrip = trips.find((t: any) => t.id === tripExpense.trip_id);
-    if (updatedTrip) {
-      setTripExpenses([...updatedTrip.trip_expenses]);
-    } else {
-      setTripExpenses([]);
-    }
-    setTripExpense(emptyTrip);
-    setLoading(false);
+    setDeleteTripExpenseDialog(false)
+      setTripExpenses((prev: TripExpense[]) =>
+        prev.filter((expense) => expense.id !== tripExpense.id)
+      );
+
+      const updatedTrips = await getTrips(toast, setTrips);
+      const currentTrip = updatedTrips.find((trip:any) => trip.id === tripExpense.tripId);
+
+      if (currentTrip) {
+        setTripExpenses([...currentTrip.trip_expenses]);
+      }
+
+      setLoading(false)
+      
 
   } catch (err) {
     console.error('Erro ao excluir Despesa:', err);

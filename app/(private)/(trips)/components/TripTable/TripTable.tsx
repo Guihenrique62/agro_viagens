@@ -241,7 +241,7 @@ const ActionBodyTemplate = (rowData: Trip) => {
       paginator
       rows={5}
       rowsPerPageOptions={[5, 10, 25]}
-      className="datatable-responsive cursor-pointer"
+      className="datatable-responsive"
       paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport RowsPerPageDropdown"
       currentPageReportTemplate="Mostrando {first} até {last} de {totalRecords} usuários"
       emptyMessage="Nenhuma viagem encontrado."
@@ -250,8 +250,6 @@ const ActionBodyTemplate = (rowData: Trip) => {
       filters={filters}
       filterDisplay="row"
       globalFilterFields={['name']}
-      onRowClick={(e) => {
-        openExpenses(e.data)}}
     >
       <Column field="user.name" header="Usuario" sortable headerStyle={{ minWidth: '25rem' }} />
       <Column field="destination" header="Destino" sortable body={destinationBodyTemplate} headerStyle={{ minWidth: '15rem' }} />

@@ -87,22 +87,27 @@ export default function TripExpenseDialog(
       footer={newExpenseDialogFooter}
     >
       <div className="field">
-        <label htmlFor="expenses">Tipo de Despesa</label>
+        <label htmlFor="expenses">Tipo de Despesa <span style={{ color: 'red' }}>*</span></label>
         <Dropdown
+          id="expenses"
           value={tripExpense.expenses}
           onChange={(e) => setTripExpense({ ...tripExpense, expenses: e.value })}
           options={typeExpenseOptions}
-          optionLabel="name" // ou "label", depende do formato dos dados
+          optionLabel="name"
           placeholder="Selecione"
-          className="w-full md:w-14rem"
+          autoFocus
+          className={classNames('w-full md:w-14rem', {
+              'p-invalid': submitted && !tripExpense.expenses,
+            })}
         />
         {submitted && !tripExpense.expenses && <small className="p-invalid">Transporte é obrigatório</small>}
       </div>
 
       <div className="field">
-        <label htmlFor="date">Data</label>
+        <label htmlFor="date">Data <span style={{ color: 'red' }}>*</span></label>
 
         <InputMask
+          id="date"
           value={tripExpense.date}
           onChange={(e) => onInputChangeExpense(e, 'date')}
           mask="99/99/9999" placeholder="dd/mm/yyyy"
@@ -114,35 +119,47 @@ export default function TripExpenseDialog(
       </div>
 
       <div className="field">
-        <label htmlFor="value">Valor</label>
-        <InputNumber
-          id='value'
-          value={tripExpense.value}
-          onChange={(e) => setTripExpense({ ...tripExpense, value: e.value ?? 0 })}
-          autoFocus
-          minFractionDigits={2} maxFractionDigits={2}
-        />
-        {submitted && !tripExpense.value && <small className="p-invalid">O valor é obrigatório</small>}
-      </div>
+      <label htmlFor="value">Valor <span style={{ color: 'red' }}>*</span></label>
+      <InputNumber
+        id="value"
+        value={tripExpense.value}
+        onValueChange={(e) => setTripExpense({ ...tripExpense, value: e.value ?? 0 })}
+        mode="currency"
+        currency="BRL"
+        locale="pt-BR"
+        minFractionDigits={2}
+        maxFractionDigits={2}
+        className={classNames({ 'p-invalid': submitted && !tripExpense.value })}
+      />
+      {submitted && !tripExpense.value && (
+        <small className="p-invalid">O valor é obrigatório</small>
+      )}
+    </div>
 
       <div className="field">
-        <label htmlFor="typePayment">Tipo de Pagamento</label>
+        <label htmlFor="typePayment">Tipo de Pagamento <span style={{ color: 'red' }}>*</span></label>
         <Dropdown
+          id="typePayment"
           value={tripExpense.typePayment}
           onChange={(e) => setTripExpense({ ...tripExpense, typePayment: e.value })}
           options={['Pessoal', 'Agrocontar']}
-          placeholder="Selecione" className="w-full md:w-14rem"
+          placeholder="Selecione"
+          className={classNames('w-full md:w-14rem', {
+              'p-invalid': submitted && !tripExpense.typePayment,
+            })}
         />
         {submitted && !tripExpense.typePayment && <small className="p-invalid">O tipo de pagamento é obrigatório</small>}
       </div>
 
       <div className="field">
-        <label htmlFor="taxDocument">Documento</label>
+        <label htmlFor="taxDocument">Documento <span style={{ color: 'red' }}>*</span></label>
         <InputText
           id="taxDocument"
           value={tripExpense.taxDocument}
           onChange={(e) => onInputChangeExpense(e, 'taxDocument')}
+          className={classNames({ 'p-invalid': submitted && !tripExpense.taxDocument })}
         />
+        {submitted && !tripExpense.taxDocument && <small className="p-invalid">O Documento é obrigatório</small>}
       </div>
 
       <div className="field">
@@ -158,6 +175,7 @@ export default function TripExpenseDialog(
 
       <div className="flex">
         <FileUpload
+          id="proof-upload"
           ref={fileUploadRef}
           mode="basic"
           name="file"
@@ -209,6 +227,9 @@ export default function TripExpenseDialog(
           }}
         />
         {uploadSuccess && <i className="pi pi-check"></i>}
+        {submitted && !tripExpense.proof && (
+          <small className="p-invalid">O comprovante é obrigatório</small>
+        )}
       </div>
 
     </Dialog>

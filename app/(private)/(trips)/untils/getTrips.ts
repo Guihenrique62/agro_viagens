@@ -25,6 +25,7 @@ export const getTrips = async (toast: any, setTrips:any) => {
       }
 
       setTrips(data);
+      return(data)
     } catch (err) {
       console.error('Erro inesperado:', err);
     }
