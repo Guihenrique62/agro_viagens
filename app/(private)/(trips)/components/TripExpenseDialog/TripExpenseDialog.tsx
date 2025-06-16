@@ -164,12 +164,10 @@ export default function TripExpenseDialog(
 
       <div className="field">
         <label htmlFor="observation">Observação</label>
-        <InputTextarea
+        <InputText
           id="observation"
-          autoResize
           value={tripExpense.observation}
           onChange={(e) => onInputChangeExpense(e, 'observation')}
-          rows={5} cols={30}
         />
       </div>
 

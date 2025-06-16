@@ -44,6 +44,18 @@ export const TripDialog = ({
 
 
         <div className="field">
+          <label htmlFor="client">Cliente - Razão Social e CNPJ <span style={{ color: 'red' }}>*</span></label>
+          <InputText
+            id="client"
+            value={trip.client}
+            onChange={(e) => onInputChange(e, 'client')}
+            required
+            className={classNames({ 'p-invalid': submitted && !trip.client })}
+          />
+          {submitted && !trip.client && <small className="p-invalid">Cliente é obrigatório!</small>}
+        </div>
+
+        <div className="field">
           <label htmlFor="destination">Destino <span style={{ color: 'red' }}>*</span></label>
           <InputText
             id="destination"
@@ -56,20 +68,10 @@ export const TripDialog = ({
           {submitted && !trip.destination && <small className="p-invalid">Destino é obrigatório!</small>}
         </div>
 
-        <div className="field">
-          <label htmlFor="client">Cliente <span style={{ color: 'red' }}>*</span></label>
-          <InputText
-            id="client"
-            value={trip.client}
-            onChange={(e) => onInputChange(e, 'client')}
-            required
-            className={classNames({ 'p-invalid': submitted && !trip.client })}
-          />
-          {submitted && !trip.client && <small className="p-invalid">Cliente é obrigatório!</small>}
-        </div>
+
 
         <div className="field">
-          <label htmlFor="escort">Acompanhante </label>
+          <label htmlFor="escort">{"Acompanhante(s)"} </label>
           <InputText
             id="escort"
             value={trip.escort}

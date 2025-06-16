@@ -18,8 +18,8 @@ export const saveTrip = async (
   setSubmitted(true);
 
   const requiredFields = [
+    { id: 'client', label: 'Cliente - Razão Social e CNPJ', value: trip.client?.trim() },
     { id: 'destination', label: 'Destino', value: trip.destination?.trim() },
-    { id: 'client', label: 'Cliente', value: trip.client?.trim() },
     { id: 'reason', label: 'Motivo', value: trip.reason?.trim() },
     { id: 'type', label: 'Tipo da Viagem', value: trip.type?.trim() },
     { id: 'startDate', label: 'Data Início', value: trip.startDate },

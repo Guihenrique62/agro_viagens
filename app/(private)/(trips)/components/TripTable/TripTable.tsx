@@ -4,7 +4,7 @@ import { InputText } from "primereact/inputtext";
 import { ProgressSpinner } from "primereact/progressspinner"
 import { Trip } from "../../trips.types";
 import { Button } from "primereact/button";
-import { getReportClient, getReportFinancial } from "../../untils/getReports";
+import { getReportClient, getReportFinancial, getReportProof } from "../../untils/getReports";
 import { ListBox } from "primereact/listbox";
 import { useRef, useState } from "react";
 import { SplitButton } from "primereact/splitbutton";
@@ -114,6 +114,11 @@ const ActionBodyTemplate = (rowData: Trip) => {
       label: 'Relatório Cliente',
       icon: 'pi pi-download',
       command: () => getReportClient(rowData)
+    },
+    {
+      label: 'Relatório Comprovantes',
+      icon: 'pi pi-download',
+      command: () => getReportProof(rowData)
     }
   ];
 
