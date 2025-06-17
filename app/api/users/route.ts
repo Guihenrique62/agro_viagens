@@ -27,17 +27,17 @@ const userUpdateSchema = z.object({
 export async function POST(req: NextRequest) {
   try {
 
-    // Valida o token de autenticação
-    const authenticatedUser = await verifyAuthHeader()
+    // // Valida o token de autenticação
+    // const authenticatedUser = await verifyAuthHeader()
 
-    if (!authenticatedUser) {
-      return NextResponse.json({ error: 'Não autorizado' }, { status: 401 })
-    }
+    // if (!authenticatedUser) {
+    //   return NextResponse.json({ error: 'Não autorizado' }, { status: 401 })
+    // }
 
-    // Valida se o usuário é um administrador
-    if (authenticatedUser.role !== 'Administrador') {
-      return NextResponse.json({ error: 'Acesso restrito a administradores' }, { status: 403 })
-    }
+    // // Valida se o usuário é um administrador
+    // if (authenticatedUser.role !== 'Administrador') {
+    //   return NextResponse.json({ error: 'Acesso restrito a administradores' }, { status: 403 })
+    // }
 
     //Valida os dados do usuário
     const body = await req.json()
