@@ -37,8 +37,62 @@ const ParameterTable = ({
     value: p.value ?? 0,
   }));
 
-  const startBodyTemplate = (rowData: Parameter) => <span>{rowData.startDate}</span>;
-  const endBodyTemplate = (rowData: Parameter) => <span>{rowData.endDate}</span>;
+  const startBodyTemplate = (rowData: Parameter) => {
+    let dateStr = rowData.startDate;
+
+    let date: Date;
+
+    if (typeof dateStr === 'string' && dateStr.includes('/')) {
+      // Ex: "15/06/2025"
+      const [day, month, year] = dateStr.split('/');
+      date = new Date(`${year}-${month}-${day}`);
+    } else {
+      // Ex: "2025-06-15T00:00:00.000Z"
+      date = new Date(dateStr);
+    }
+
+    if (isNaN(date.getTime())) {
+      return <span style={{ color: 'red' }}>Data inválida</span>;
+    }
+
+    const formatted = new Intl.DateTimeFormat('pt-BR', {
+      timeZone: 'UTC',
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+    }).format(date);
+
+    return <span>{formatted}</span>;
+  }
+
+  const endBodyTemplate = (rowData: Parameter) => {
+    let dateStr = rowData.endDate;
+
+    let date: Date;
+
+    if (typeof dateStr === 'string' && dateStr.includes('/')) {
+      // Ex: "15/06/2025"
+      const [day, month, year] = dateStr.split('/');
+      date = new Date(`${year}-${month}-${day}`);
+    } else {
+      // Ex: "2025-06-15T00:00:00.000Z"
+      date = new Date(dateStr);
+    }
+
+    if (isNaN(date.getTime())) {
+      return <span style={{ color: 'red' }}>Data inválida</span>;
+    }
+
+    const formatted = new Intl.DateTimeFormat('pt-BR', {
+      timeZone: 'UTC',
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+    }).format(date);
+
+    return <span>{formatted}</span>;
+  }
+
   const valueBodyTemplate = (rowData: Parameter) => <span>{rowData.value}</span>;
 
   const actionBodyTemplate = (rowData: Parameter) => (

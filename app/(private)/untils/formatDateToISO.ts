@@ -10,8 +10,6 @@ export const formatDateToBR = (date: string | Date) => {
 
 export const formatDateToPadrao = (date: string) => {
   const dateObj = new Date(date);
-  console.log(date)
-  console.log(dateObj)
   if (isNaN(dateObj.getTime())) {
     return `Data inválida + ${date}`;
 

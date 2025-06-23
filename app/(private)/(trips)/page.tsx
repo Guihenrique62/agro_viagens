@@ -26,6 +26,7 @@ import { deleteTripExpense } from './untils/deleteTripExpense';
 import { TripExpenseDeleteDialog } from './components/TripExpenseDeleteDialog/TripExpenseDeleteDialog';
 import { TripFinishDialog } from './components/TripFinishDialog/TripFinishDialog';
 import { finishTrip } from './untils/finishTrip';
+import { formatDateToBR, formatDateToPadrao } from '../untils/formatDateToISO';
 
 
 
@@ -81,7 +82,7 @@ const TripsPage = () => {
   const [trips, setTrips] = useState<Trip[]>([]);
   const [trip, setTrip] = useState<Trip>(emptyTrip);
   const [transports, setTransports] = useState<Transport>();
-  const [selectedTransports, setSelectedTransports] = useState<Transport[]>([]);
+  const [selectedTransports, setSelectedTransports] = useState<Number[]>([]);
 
   const [tripDialog, setTripDialog] = useState(false);
   const [deleteTripDialog, setDeleteTripDialog] = useState(false);
@@ -128,7 +129,14 @@ const TripsPage = () => {
 
   //Abre o dialogo de editar usuario
   const openEdit = (trip: Trip) => {
-    setTrip({ ...trip });
+    setTrip({ 
+      ...trip,
+      startDate: formatDateToPadrao(trip.startDate),
+      endDate: formatDateToPadrao(trip.endDate),
+     });
+
+    const transportIds = trip.transports?.map(t => t.id) || []
+    setSelectedTransports(transportIds);
     setSubmitted(false);
     setEditTripDialog(true);
   };

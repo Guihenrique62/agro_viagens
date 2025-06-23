@@ -84,13 +84,22 @@ export const editTrip = async (
   
     } catch (err) {
       console.error('Erro ao editar Viagem:', err);
-      toast.current?.show({
-        severity: 'error',
-        summary: 'Erro',
-        detail: 'Erro inesperado ao editar Viagem.',
-        life: 6000,
-      });
-    }
+      if (err instanceof Error && err.message.includes('administrativo')) {
+        toast.current?.show({
+          severity: 'warning',
+          summary: 'Alerta',
+          detail: err.message,
+          life: 6000,
+        });
+      }else {
+        toast.current?.show({
+          severity: 'error',
+          summary: 'Erro',
+          detail: (err instanceof Error ? err.message : 'Erro inesperado ao editar a Viagem.'),
+          life: 6000,
+        });
+      }
+  }
 
     setEditTripDialog(false);
     setTrip(emptyTrip);

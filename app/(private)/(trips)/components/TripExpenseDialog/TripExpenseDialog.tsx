@@ -119,22 +119,22 @@ export default function TripExpenseDialog(
       </div>
 
       <div className="field">
-      <label htmlFor="value">Valor <span style={{ color: 'red' }}>*</span></label>
-      <InputNumber
-        id="value"
-        value={tripExpense.value}
-        onValueChange={(e) => setTripExpense({ ...tripExpense, value: e.value ?? 0 })}
-        mode="currency"
-        currency="BRL"
-        locale="pt-BR"
-        minFractionDigits={2}
-        maxFractionDigits={2}
-        className={classNames({ 'p-invalid': submitted && !tripExpense.value })}
-      />
-      {submitted && !tripExpense.value && (
-        <small className="p-invalid">O valor é obrigatório</small>
-      )}
-    </div>
+        <label htmlFor="value">Valor <span style={{ color: 'red' }}>*</span></label>
+        <InputNumber
+          id="value"
+          value={tripExpense.value}
+          onValueChange={(e) => setTripExpense({ ...tripExpense, value: e.value ?? 0 })}
+          mode="currency"
+          currency="BRL"
+          locale="pt-BR"
+          minFractionDigits={2}
+          maxFractionDigits={2}
+          className={classNames({ 'p-invalid': submitted && !tripExpense.value })}
+        />
+        {submitted && !tripExpense.value && (
+          <small className="p-invalid">O valor é obrigatório</small>
+        )}
+      </div>
 
       <div className="field">
         <label htmlFor="typePayment">Tipo de Pagamento <span style={{ color: 'red' }}>*</span></label>
