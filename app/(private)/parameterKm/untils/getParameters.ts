@@ -29,14 +29,7 @@ export const getParameters = async (
         return;
       }
 
-      // Formatar datas no padrão dd/mm/yyyy
-      const formatted = data.map((param : Parameter) => ({
-        ...param,
-        startDate: new Date(param.startDate).toLocaleDateString('pt-BR'),
-        endDate: new Date(param.endDate).toLocaleDateString('pt-BR'),
-      }));
-
-      setParameters(formatted);
+      setParameters(data);
     } catch (err) {
       console.error('Erro inesperado:', err);
     }

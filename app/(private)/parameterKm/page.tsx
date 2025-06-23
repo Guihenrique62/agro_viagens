@@ -59,9 +59,18 @@ const ParameterPage = () => {
     setParameterDialog(true);
   };
 
+  const formatISOToBR = (iso: string): string => {
+    if (!iso || typeof iso !== 'string') return ''
+    const [year, month, day] = iso.split('T')[0].split('-')
+    return `${day}/${month}/${year}`
+  }
+
   //Abre o dialogo de editar despesa
   const openEdit = (parameter: Parameter) => {
-    setParameter({ ...parameter });
+    setParameter({ ...parameter,
+      startDate: formatISOToBR(parameter.startDate),
+      endDate: formatISOToBR(parameter.endDate),
+    });
     setSubmitted(false);
     setEditParameterDialog(true);
   };
