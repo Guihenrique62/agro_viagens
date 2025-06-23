@@ -55,12 +55,10 @@ const ParameterTable = ({
   }
 
   const startBodyTemplate = (rowData: Parameter) => {
-    console.log('rowData.startDate', rowData.startDate)
     return <span>{formatDateToBR(rowData.startDate)}</span>
   }
 
   const endBodyTemplate = (rowData: Parameter) => {
-    console.log('rowData.endDate', rowData.endDate)
     return <span>{formatDateToBR(rowData.endDate)}</span>
   }
 
