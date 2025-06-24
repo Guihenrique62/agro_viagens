@@ -202,6 +202,7 @@ const html = `
               <th>Cliente</th>
               <th>Tipo da Viagem</th>
               <th>Destino</th>
+              <th>Km rodados</th>
             </tr>
           </thead>
           <tbody>
@@ -210,6 +211,7 @@ const html = `
               <td>${trip.client}</td>
               <td>${trip.type}</td>
               <td>${trip.destination}</td>
+              <td>${trip.endKM - trip.startKM} KM</td>
             </tr>
           </tbody>
         </table>
@@ -219,28 +221,7 @@ const html = `
         <table class="table table-bordered">
           <thead>
             <tr>
-              <th>KM rodados</th>
-              <th>Valor do KM</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td>${(trip.endKM - trip.startKM).toFixed(1)}</td>
-              <td>${trip.parameters_km.value.toFixed(2)}</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-
-      <div class="table-responsive">
-        <table class="table table-bordered">
-          <thead>
-            <tr>
-              <th colspan="3" class="text-center">Meio(s) de Transporte(s)</th>
-            </tr>
-            <tr>
-              <th>Nome</th>
-              <th>Calcula o KM?</th>
+              <th class="text-center">Meio(s) de Transporte(s)</th>
             </tr>
           </thead>
           <tbody>
@@ -249,7 +230,6 @@ const html = `
                 (t) => `
                 <tr>
                   <td>${t.transport.name}</td>
-                  <td>${t.transport.calculateKM ? 'Sim' : 'Não'}</td>
                 </tr>
               `
               )

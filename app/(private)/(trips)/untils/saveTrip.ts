@@ -46,6 +46,23 @@ export const saveTrip = async (
     return;
   }
 
+  if (trip.startDate > trip.endDate) {
+    const el = document.getElementById('startDate');
+    if (el) {
+      el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      el.focus?.();
+    }
+
+    toast.current?.show({
+      severity: 'error',
+      summary: 'Erro de Validação',
+      detail: 'Data de início deve ser menor do que a data final.',
+      life: 4000,
+    });
+
+    return;
+  }
+
   // Validação de KM
   if (trip.startKM > trip.endKM) {
     const el = document.getElementById('startKM');
