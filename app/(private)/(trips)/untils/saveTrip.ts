@@ -47,7 +47,7 @@ export const saveTrip = async (
   }
 
   // Validação de KM
-  if (trip.startKM || trip.endKM && trip.startKM > trip.endKM) {
+  if (trip.startKM > trip.endKM) {
     const el = document.getElementById('startKM');
     if (el) {
       el.scrollIntoView({ behavior: 'smooth', block: 'center' });
