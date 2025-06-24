@@ -46,6 +46,24 @@ export const saveTrip = async (
     return;
   }
 
+  // Validação de KM
+  if (trip.startKM || trip.endKM && trip.startKM > trip.endKM) {
+    const el = document.getElementById('startKM');
+    if (el) {
+      el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      el.focus?.();
+    }
+
+    toast.current?.show({
+      severity: 'error',
+      summary: 'Erro de Validação',
+      detail: 'KM inicial deve ser menor do que o KM final.',
+      life: 4000,
+    });
+
+    return;
+  }
+
   let _trips = [...trips];
   let _trip = { ...trip };
 

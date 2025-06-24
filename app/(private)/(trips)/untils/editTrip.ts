@@ -20,6 +20,23 @@ export const editTrip = async (
     try {
       setloading(true)
 
+        if (trip.startKM || trip.endKM && trip.startKM > trip.endKM) {
+          const el = document.getElementById('startKM');
+          if (el) {
+            el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            el.focus?.();
+          }
+
+          toast.current?.show({
+            severity: 'error',
+            summary: 'Erro de Validação',
+            detail: 'KM inicial deve ser menor do que o KM final.',
+            life: 4000,
+          });
+
+          return;
+        }
+
       // Buscar o parâmetro correspondente à startDate
       const paramRes = await fetch('/api/parameterKm/currentParameter', {
         method: 'POST',
