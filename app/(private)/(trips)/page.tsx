@@ -25,8 +25,9 @@ import TripExpenseTable from './components/TripExpenseTable/TripExpenseTable';
 import { deleteTripExpense } from './untils/deleteTripExpense';
 import { TripExpenseDeleteDialog } from './components/TripExpenseDeleteDialog/TripExpenseDeleteDialog';
 import { TripFinishDialog } from './components/TripFinishDialog/TripFinishDialog';
-import { finishTrip } from './untils/finishTrip';
 import { formatDateToBR, formatDateToPadrao } from '../untils/formatDateToISO';
+import { statusTrip } from './untils/statusTrip';
+import { TripReopenDialog } from './components/TripReopenDialog/TripReopenDialog';
 
 
 
@@ -98,6 +99,7 @@ const TripsPage = () => {
   const [currentExpenseTrip, setCurrentExpenseTrip] = useState<Trip | null>(null);
 
   const [tripFinishDialog, setTripFinishDialog] = useState(false)
+  const [tripReopenDialog, setTripReopenDialog] = useState(false);
 
 
   const [selectedTrips, setSelectedTrips] = useState(null);
@@ -257,14 +259,27 @@ const TripsPage = () => {
   }
 
   const handleFinishTrip = () => {
-    finishTrip(
+    statusTrip(
       trip,
       setTrips,
       setTrip,
       setTripFinishDialog,
       emptyTrip,
       toast,
-      setLoading
+      setLoading,
+      'Finalizada'
+    )
+  }
+  const handleReopenTrip = () => {
+    statusTrip(
+      trip,
+      setTrips,
+      setTrip,
+      setTripReopenDialog,
+      emptyTrip,
+      toast,
+      setLoading,
+      'EmAndamento'
     )
   }
 
@@ -350,6 +365,7 @@ const TripsPage = () => {
                 openEdit={openEdit}
                 openExpenses={openExpenses}
                 setTripFinishDialog = {setTripFinishDialog}
+                setTripReopenDialog = {setTripReopenDialog}
               />
             </>
           )}
@@ -417,6 +433,13 @@ const TripsPage = () => {
             setTripFinishDialog = {setTripFinishDialog}
             handleFinishTrip = {handleFinishTrip}
             trip = {trip}
+          />
+
+          <TripReopenDialog 
+            tripReopenDialog={tripReopenDialog}
+            setTripReopenDialog={setTripReopenDialog}
+            handleReopenTrip={handleReopenTrip}
+            trip={trip}
           />
 
         </div>

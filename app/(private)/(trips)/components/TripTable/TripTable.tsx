@@ -23,7 +23,8 @@ export const TripTable = ({
   openExpenses,
   setTrip,
   setDeleteTripDialog,
-  setTripFinishDialog
+  setTripFinishDialog,
+  setTripReopenDialog
 }: any) => {
 
   const confirmDeleteTrip = (trip: Trip) => {
@@ -34,6 +35,11 @@ export const TripTable = ({
   const confirmFinishTrip = (trip: Trip) => {
     setTrip(trip);
     setTripFinishDialog(true);
+  };
+
+  const confirmReopenTrip = (trip: Trip) => {
+    setTrip(trip);
+    setTripReopenDialog(true);
   };
 
   const onGlobalFilterChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -93,8 +99,13 @@ const ActionBodyTemplate = (rowData: Trip) => {
   // Filtra as ações baseadas no status
   const getActionItems = () => {
     if (rowData.status === "Finalizada") {
-      // Se finalizada, mostra apenas Excluir
-      return baseActionItems.filter(item => item.label === 'Excluir');
+      // Se finalizada, mostra apenas Excluir e reabrir
+      const actions = baseActionItems.filter((item) => (item.label === 'Excluir'));
+      return [...actions, {
+        label: 'Reabrir',
+        icon: 'pi pi-refresh',
+        command: () => confirmReopenTrip(rowData)
+      }];
     } else {
       // Se não finalizada, mostra todas as ações + Aprovar
       return [...baseActionItems, approveAction];

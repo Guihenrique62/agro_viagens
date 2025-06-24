@@ -62,11 +62,18 @@ const AppTopbar = forwardRef<AppTopbarRef>((props, ref) => {
                     <span>Profile</span>
                 </button> */}
 
-                {/* <button type="button" onClick={openConfigSidebar} className="p-link layout-topbar-button">
-                    <i className="pi pi-cog"></i>
-                    <span>Configurações</span>
-                </button> */}
-                
+                <button 
+                    type="button" 
+                    onClick={() => {
+                        window.open('/docs/ajuda.pdf', '_blank')
+                    }} 
+                    className="p-link layout-topbar-button"
+                >
+                    <i className="pi pi-question-circle"></i>
+                    <span>Ajuda</span>
+                </button>
+
+                {/* LOGOUT BUTTON */}
                 <button type="button" className="p-link layout-topbar-button" onClick={() => setLogoutDialog(true)}>
                     <i className="pi pi-sign-out"></i>
                     <span>Logout</span>
