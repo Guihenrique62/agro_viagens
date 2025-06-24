@@ -20,8 +20,6 @@ export const editTrip = async (
     try {
       setloading(true)
 
-      console.log('Editando Viagem:', trip);
-
       // Buscar o parâmetro correspondente à startDate
       const paramRes = await fetch('/api/parameterKm/currentParameter', {
         method: 'POST',

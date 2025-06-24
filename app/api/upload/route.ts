@@ -28,9 +28,9 @@ export async function POST(request: NextRequest) {
   }
 
   const timestamp = Date.now()
-  const fileName = (file as any).name || 'file'
-  const safeName = fileName.replace(/\s/g, '_')
-  const finalFileName = `${timestamp}-${safeName}`
+  const fileType = file.type || 'application/octet-stream'
+  const ext = fileType.split('/')[1] || 'bin'
+  const finalFileName = `${timestamp}-proof.${ext}`
   const filePath = path.join(uploadDir, finalFileName)
 
   const buffer = Buffer.from(await file.arrayBuffer())
