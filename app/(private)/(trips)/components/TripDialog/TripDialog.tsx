@@ -32,6 +32,7 @@ export const TripDialog = ({
     setTrip({ ...trip, [name]: val });
   };
 
+  console.log('TripDialog', trip, transports, selectedTransports);
   return (
 
       <Dialog visible={visible}

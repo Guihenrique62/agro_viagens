@@ -68,7 +68,7 @@ export default function TripExpenseTable({
         severity="info"
         onClick={() => {
           const link = document.createElement('a')
-          link.href = rowData.proof
+          link.href = `${window.location.origin}${rowData.proof}`
           link.download = rowData.proof.split('/').pop() || 'comprovante'
           document.body.appendChild(link)
           link.click()
