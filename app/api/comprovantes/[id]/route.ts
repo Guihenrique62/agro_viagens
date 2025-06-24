@@ -43,7 +43,6 @@ export async function GET(_: NextRequest, { params }: { params: { id: string } }
     `Cliente: ${trip.client}`,
     `Destino: ${trip.destination}`,
     `Motivo da viagem: ${trip.reason}`,
-    `ID da Viagem: ${trip.id}`,
     `Quantidade de Despesas: ${trip.trip_expenses.length}`,
   ]
 
@@ -62,38 +61,59 @@ export async function GET(_: NextRequest, { params }: { params: { id: string } }
     const proofUrl = expense.proof
     if (!proofUrl) continue
 
-    const filePath = path.join(process.cwd(), 'public', proofUrl.replace('/uploads/', 'uploads/'))
+    const ext = path.extname(proofUrl).toLowerCase()
+
+    const safePath = decodeURIComponent(proofUrl)
+    const filePath = path.join(process.cwd(), 'public', safePath.replace('/uploads/', 'uploads/'))
     const fileBuffer = await fs.readFile(filePath)
-    const fileType = proofUrl.split('.').pop()
 
-    if (!fileType) continue
+    if (ext === '.png' || ext === '.jpg' || ext === '.jpeg') {
+      try {
+        // Lê o arquivo de imagem como um array de bytes
+        const imageBytes = new Uint8Array(fileBuffer)
+        // Embute a imagem no PDF, dependendo da extensão
+        const image = ext === '.png'
+          ? await pdfDoc.embedPng(imageBytes)
+          : await pdfDoc.embedJpg(imageBytes)
 
-    if(fileType != 'pdf') {
-      // ✅ Imagem: título + imagem na mesma página
-      const imageBytes = new Uint8Array(fileBuffer)
-      const image = fileType === 'png'
-        ? await pdfDoc.embedPng(imageBytes)
-        : await pdfDoc.embedJpg(imageBytes)
+        // Redimensiona a imagem para 50% do tamanho original
+        const imgDims = image.scale(0.5)
+        // Adiciona uma nova página ao PDF no tamanho A4
+        const page = pdfDoc.addPage([595, 842])
 
-      const imgDims = image.scale(0.5) // você pode ajustar o scale conforme necessário
-      const page = pdfDoc.addPage([595, 842])
+        // Escreve o nome da despesa no topo da página
+        page.drawText(`Despesa: ${expense.expenses?.name}`, {
+          x: 50,
+          y: 780,
+          size: 14,
+          font,
+        })
 
-      page.drawText(`Despesa: ${expense.expenses?.name}`, {
-        x: 50,
-        y: 780,
-        size: 14,
-        font,
-      })
-
-      // 🖼 centralizar e posicionar a imagem mais abaixo
-      page.drawImage(image, {
-        x: (595 - imgDims.width) / 2,
-        y: 150,
-        width: imgDims.width,
-        height: imgDims.height,
-      })
+        // Desenha a imagem centralizada na página
+        page.drawImage(image, {
+          x: (595 - imgDims.width) / 2,
+          y: 150,
+          width: imgDims.width,
+          height: imgDims.height,
+        })
+      } catch (err) {
+        // Em caso de erro ao embutir a imagem, exibe no console
+        console.error(`Erro ao embutir imagem ${proofUrl}:`, err)
+      }
     }
-    
+
+    else if (ext === '.pdf') {
+      try {
+        const otherPdf = await PDFDocument.load(new Uint8Array(fileBuffer))
+        const copiedPages = await pdfDoc.copyPages(otherPdf, otherPdf.getPageIndices())
+
+        copiedPages.forEach((page) => {
+          pdfDoc.addPage(page)
+        })
+      } catch (err) {
+        console.error(`Erro ao embutir PDF ${proofUrl}:`, err)
+      }
+    }
   }
 
   const pdfBytes = await pdfDoc.save()
