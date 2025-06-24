@@ -3,6 +3,7 @@ import { PDFDocument, StandardFonts, rgb } from 'pdf-lib'
 import path from 'path'
 import fs from 'fs/promises'
 import { prisma } from '../../lib/prisma'
+import { fileTypeFromBuffer } from 'file-type'
 
 export const runtime = 'nodejs'
 
@@ -24,8 +25,6 @@ export async function GET(_: NextRequest, { params }: { params: { id: string } }
   const pdfDoc = await PDFDocument.create()
   const font = await pdfDoc.embedFont(StandardFonts.Helvetica)
 
-
-  // Capa
   const cover = pdfDoc.addPage([595, 842]) // A4
   const { height } = cover.getSize()
 
@@ -61,27 +60,32 @@ export async function GET(_: NextRequest, { params }: { params: { id: string } }
     const proofUrl = expense.proof
     if (!proofUrl) continue
 
-    const ext = path.extname(proofUrl).toLowerCase()
-
     const safePath = decodeURIComponent(proofUrl)
     const filePath = path.join(process.cwd(), 'public', safePath.replace('/uploads/', 'uploads/'))
-    const fileBuffer = await fs.readFile(filePath)
 
-    if (ext === '.png' || ext === '.jpg' || ext === '.jpeg') {
-      try {
-        // Lê o arquivo de imagem como um array de bytes
-        const imageBytes = new Uint8Array(fileBuffer)
-        // Embute a imagem no PDF, dependendo da extensão
-        const image = ext === '.png'
-          ? await pdfDoc.embedPng(imageBytes)
-          : await pdfDoc.embedJpg(imageBytes)
+    let fileBuffer: Buffer
+    try {
+      fileBuffer = await fs.readFile(filePath)
+    } catch (err) {
+      console.error(`Erro ao ler o arquivo ${proofUrl}:`, err)
+      continue
+    }
 
-        // Redimensiona a imagem para 50% do tamanho original
+    const type = await fileTypeFromBuffer(new Uint8Array(fileBuffer))
+    if (!type) {
+      console.warn(`Tipo de arquivo não reconhecido: ${proofUrl}`)
+      continue
+    }
+
+    try {
+      if (type.mime === 'image/png' || type.mime === 'image/jpeg') {
+        const image = type.mime === 'image/png'
+          ? await pdfDoc.embedPng(new Uint8Array(fileBuffer))
+          : await pdfDoc.embedJpg(new Uint8Array(fileBuffer))
+
         const imgDims = image.scale(0.5)
-        // Adiciona uma nova página ao PDF no tamanho A4
         const page = pdfDoc.addPage([595, 842])
 
-        // Escreve o nome da despesa no topo da página
         page.drawText(`Despesa: ${expense.expenses?.name}`, {
           x: 50,
           y: 780,
@@ -89,30 +93,24 @@ export async function GET(_: NextRequest, { params }: { params: { id: string } }
           font,
         })
 
-        // Desenha a imagem centralizada na página
         page.drawImage(image, {
           x: (595 - imgDims.width) / 2,
           y: 150,
           width: imgDims.width,
           height: imgDims.height,
         })
-      } catch (err) {
-        // Em caso de erro ao embutir a imagem, exibe no console
-        console.error(`Erro ao embutir imagem ${proofUrl}:`, err)
-      }
-    }
-
-    else if (ext === '.pdf') {
-      try {
+      } else if (type.mime === 'application/pdf') {
         const otherPdf = await PDFDocument.load(new Uint8Array(fileBuffer))
         const copiedPages = await pdfDoc.copyPages(otherPdf, otherPdf.getPageIndices())
 
         copiedPages.forEach((page) => {
           pdfDoc.addPage(page)
         })
-      } catch (err) {
-        console.error(`Erro ao embutir PDF ${proofUrl}:`, err)
+      } else {
+        console.warn(`Tipo de arquivo não suportado (${type.mime}) em ${proofUrl}`)
       }
+    } catch (err) {
+      console.error(`Erro ao embutir arquivo ${proofUrl}:`, err)
     }
   }
 
