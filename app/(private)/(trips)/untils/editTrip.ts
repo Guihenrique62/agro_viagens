@@ -30,7 +30,7 @@ export const editTrip = async (
         },
         credentials: 'include',
         body: JSON.stringify({
-          date: formatDateToBR(trip.startDate),
+          date: trip.startDate
         }),
       });
 
