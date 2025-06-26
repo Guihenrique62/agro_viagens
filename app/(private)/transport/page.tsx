@@ -13,6 +13,7 @@ import { Toast } from 'primereact/toast';
 import { Toolbar } from 'primereact/toolbar';
 import { classNames } from 'primereact/utils';
 import React, { useEffect, useRef, useState } from 'react';
+import { reactiveTrasnport } from './untils/reactiveTransport';
 
 interface Transport {
   id: number;
@@ -37,6 +38,7 @@ const TransportPage = () => {
   const [transportDialog, setTransportDialog] = useState(false);
   const [deleteTransportDialog, setDeleteTransportDialog] = useState(false);
   const [editTransportDialog, setEditTransportDialog] = useState(false);
+  const [reactiveTransportDialog, setReactiveTransportDialog] = useState(false);
 
   
   const [selectedTransports, setSelectedTransports] = useState(null);
@@ -99,6 +101,12 @@ const TransportPage = () => {
     setSubmitted(false);
     setEditTransportDialog(true);
   };
+
+  const openReactiveTransport = (transport: Transport) => {
+    setTransport({ ...transport }); 
+    setSubmitted(false);
+    setReactiveTransportDialog(true);
+  }
 
   // esconde o diagolo 
   const hideDialog = () => {
@@ -180,6 +188,18 @@ const TransportPage = () => {
     setTransport(emptyTransport);
   }
   };
+
+  const handlerActiveTransport = () => {
+    reactiveTrasnport(
+      transport,
+      setReactiveTransportDialog,
+      setTransport,
+      setTransports,
+      transports,
+      toast,
+      emptyTransport
+    )
+  }
 
   // Edita o transporte
   const editTransport = async () => {
@@ -321,23 +341,40 @@ const TransportPage = () => {
       </>
   );
 
-  const actionBodyTemplate = (rowData: Transport) => (
-    <>
-      <Button
-        icon="pi pi-pencil"
-        rounded
-        severity="info"
-        className="mr-2"
-        onClick={() => openEdit(rowData)}
-      />
-      <Button
-        icon="pi pi-trash"
-        rounded
-        severity="danger"
-        onClick={() => confirmDeleteProduct(rowData)}
-      />
-    </>
-  );
+  const actionBodyTemplate = (rowData: Transport) => {
+    if(rowData.status === 1) {
+      // Botões para transportes ativos (editar/excluir)
+      return(
+        <>
+          <Button
+            icon="pi pi-pencil"
+            rounded
+            severity="info"
+            className="mr-2"
+            onClick={() => openEdit(rowData)}
+          />
+          <Button
+            icon="pi pi-trash"
+            rounded
+            severity="danger"
+            onClick={() => confirmDeleteProduct(rowData)}
+          />
+        </>
+      );
+    } else {
+      // Botão para transportes inativos (reativar)
+      return (
+        <Button
+          icon="pi pi-refresh"
+          rounded
+          severity="success"
+          tooltip="Reativar transporte"
+          tooltipOptions={{ position: 'top' }}
+          onClick={() => openReactiveTransport(rowData)}
+        />
+      );
+    }
+}
 
   const leftToolbarTemplate = () => (
     <div className="my-2">
@@ -388,6 +425,13 @@ const TransportPage = () => {
     <>
       <Button label="Não" icon="pi pi-times" text onClick={hideDeleteProductDialog} />
       <Button label="Sim" icon="pi pi-check" text onClick={deleteTransport} />
+    </>
+  );
+
+  const reactiveTransportDialogFooter = (
+    <>
+      <Button label="Não" icon="pi pi-times" text onClick={() => setReactiveTransportDialog(false)} />
+      <Button label="Sim" icon="pi pi-check" text onClick={handlerActiveTransport} />
     </>
   );
 
@@ -487,7 +531,14 @@ const TransportPage = () => {
           <Dialog visible={deleteTransportDialog} style={{ width: '450px' }} header="Confirmar" modal footer={deleteTransportDialogFooter} onHide={hideDeleteProductDialog}>
             <div className="confirmation-content">
               <i className="pi pi-exclamation-triangle mr-3" />
-              {transport && <span>Tem certeza que deseja excluir <b>{transport.name}</b>?</span>}
+              {transport && <span>Tem certeza que deseja excluir <b>{transport.name}</b>? Após a exclusão o Transporte deixara de ser exibido ao usuário!</span>}
+            </div>
+          </Dialog>
+
+          <Dialog visible={reactiveTransportDialog} style={{ width: '450px' }} header="Confirmar" modal footer={reactiveTransportDialogFooter} onHide={() => setReactiveTransportDialog(false)}>
+            <div className="confirmation-content">
+              <i className="pi pi-exclamation-triangle mr-3" />
+              {transport && <span>Tem certeza que deseja Reativar <b>{transport.name}</b>? Após a reativação o Transporte voltará a ser exibido ao usuário!</span>}
             </div>
           </Dialog>
 

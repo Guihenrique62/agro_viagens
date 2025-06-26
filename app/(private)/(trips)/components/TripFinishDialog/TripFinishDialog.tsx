@@ -21,7 +21,7 @@ export const TripFinishDialog = ({
     <Dialog visible={tripFinishDialog} style={{ width: '450px' }} header="Confirmar" modal footer={tripFinishFooter} onHide={() => setTripFinishDialog(false)}>
       <div className="confirmation-content">
         <i className="pi pi-exclamation-triangle mr-3" />
-        {<span>Tem certeza que deseja Finalizar a Viagem? Após essa ação não será mais permitido alterações !</span>}
+        {<span>Tem certeza que deseja Finalizar a Viagem? Após essa ação, não serão permitidas alterações!</span>}
       </div>
     </Dialog>
   )
