@@ -195,7 +195,7 @@ const html = `
         <div class="header-info">
           <div><strong>Colaborador:</strong> ${trip.user.name}</div>
           <div><strong>Empresa:</strong> Agrocontar Consultoria Contábil Ltda</div>
-          <div><strong>Cliente:</strong> ${trip.client}</div>
+          <div><strong>Cliente:</strong> ${trip.client} - ${trip.cpf_cnpj}</div>
           <div><strong>Destino:</strong> ${trip.destination}</div>
           <div><strong>Motivo da viagem:</strong> ${trip.reason}</div>
         </div>

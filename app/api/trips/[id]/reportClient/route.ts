@@ -208,7 +208,7 @@ const html = `
           <tbody>
             <tr>
               <td>${formatedDate(trip.startDate)}</td>
-              <td>${trip.client}</td>
+              <td>${trip.client} - ${trip.cpf_cnpj}</td>
               <td>${trip.type}</td>
               <td>${trip.destination}</td>
               <td>${trip.endKM - trip.startKM} KM</td>
