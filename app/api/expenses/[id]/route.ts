@@ -138,19 +138,38 @@ export async function DELETE(req: NextRequest, {params}: {params: Promise<{ id: 
   }
 
   try {
+    // Verifica se existem trip_expenses vinculadas a esta expense
+    const tripExpensesCount = await prisma.trip_expenses.count({
+      where: { expensesId: numericId }
+    });
 
-    // Deleta o despesa pelo ID
-    await prisma.expenses.delete({ where: { id: numericId } })
-
-    return NextResponse.json({ message: 'Despesa deletada com sucesso.' }, { status: 200 })
+    if (tripExpensesCount > 0) {
+      // Se existirem trip_expenses vinculadas, apenas atualiza o status para 2 (inativo)
+      await prisma.expenses.update({
+        where: { id: numericId },
+        data: { status: 2 }
+      });
+      
+      return NextResponse.json(
+        { message: 'Despesa marcada como inativa, pois possui registros vinculados.' }, 
+        { status: 200 }
+      );
+    } else {
+      // Se não houver trip_expenses vinculadas, deleta a expense
+      await prisma.expenses.delete({ where: { id: numericId } });
+      
+      return NextResponse.json(
+        { message: 'Despesa deletada com sucesso.' }, 
+        { status: 200 }
+      );
+    }
 
   } catch (error: any) {
-    
     if (error.code === 'P2025') {
       return NextResponse.json({ error: 'Despesa não encontrada.' }, { status: 404 })
     }
 
     console.error(error)
-    return NextResponse.json({ error: 'Erro ao deletar despesa.' }, { status: 500 })
+    return NextResponse.json({ error: 'Erro ao processar a solicitação.' }, { status: 500 })
   }
 }

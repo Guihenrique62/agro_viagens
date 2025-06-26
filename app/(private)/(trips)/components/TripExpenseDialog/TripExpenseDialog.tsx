@@ -201,13 +201,25 @@ export default function TripExpenseDialog(
           setUploading(false);
         
           }}
-          onError={() => {
+          onError={(e) => {
+            let errorMessage = 'Erro ao enviar o arquivo';
+
+            try {
+              const response = JSON.parse(e.xhr.response);
+              if (response?.error) {
+                errorMessage = response.error;
+              }
+            } catch (parseErr) {
+              console.error('Erro ao tentar parsear resposta do erro:', parseErr);
+            }
+
             toast.current?.show({
               severity: 'error',
               summary: 'Erro',
-              detail: 'Erro ao enviar o arquivo',
+              detail: errorMessage,
               life: 3000,
             });
+
             setUploading(false);
           }}
 

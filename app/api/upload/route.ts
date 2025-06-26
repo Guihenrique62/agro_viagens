@@ -34,6 +34,11 @@ export async function POST(request: NextRequest) {
   const filePath = path.join(uploadDir, finalFileName)
 
   const buffer = Buffer.from(await file.arrayBuffer())
+
+  //Retorna erro se for maior que 5MB
+  if (buffer.length > 5 * 1024 * 1024) {
+    return NextResponse.json({ error: 'Arquivo excede 5MB.' }, { status: 400 })
+  }
   await fs.writeFile(filePath, buffer)
 
   const fileUrl = `/uploads/${finalFileName}`
