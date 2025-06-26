@@ -42,7 +42,6 @@ export const deleteTrip = async (
       });
   
       // Atualiza lista local
-      setTrip(data);
       setSelectedTrips(null);
       setDeleteTripDialog(false);
       await getTrips(toast, setTrips);

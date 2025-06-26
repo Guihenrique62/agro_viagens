@@ -23,7 +23,7 @@ export const getTransports = async (toast: any, setTransports: any) => {
         return;
       }
 
-      setTransports(data);
+      setTransports(data.filter((transport: any) => transport.status === 1));
     } catch (err) {
       console.error('Erro inesperado:', err);
     }

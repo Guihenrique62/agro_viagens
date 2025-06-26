@@ -8,6 +8,7 @@ import { verifyAuthHeader } from '../../lib/auth'
 const updateSchema = z.object({
   name: z.string().optional(),
   calculateKM: z.boolean().optional(),
+  status: z.number().optional()
 })
 
 export async function PATCH(req: NextRequest, {params}: {params: Promise<{ id: string }>}) {
@@ -143,10 +144,30 @@ export async function DELETE(req: NextRequest, {params}: {params: Promise<{ id: 
 
   try {
 
+    // Verifica se existem trip_transport vinculadas a esta trasport
+    const tripTransportCount = await prisma.trip_transports.count({
+      where: { transportId: numericId }
+    });
+
+    if (tripTransportCount > 0) {
+      // Se existirem trip_transport vinculadas, apenas atualiza o status para 2 (inativo)
+      await prisma.transports.update({
+        where: { id: numericId },
+        data: { status: 2 }
+      });
+      
+      return NextResponse.json(
+        { message: 'Transporte marcado como inativo (status 2) pois possui registros vinculados.' }, 
+        { status: 200 }
+      );
+    }else{
+
     // Deleta o transporte pelo ID
     await prisma.transports.delete({ where: { id: numericId } })
 
     return NextResponse.json({ message: 'Transporte deletado com sucesso.' }, { status: 200 })
+
+    }
 
   } catch (error: any) {
     

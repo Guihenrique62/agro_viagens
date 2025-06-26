@@ -46,7 +46,28 @@ export const saveTrip = async (
     return;
   }
 
-  if (trip.startDate > trip.endDate) {
+  // Função para converter DD/MM/YYYY para Date
+  const parseDate = (dateString: string) => {
+    const [day, month, year] = dateString.split('/');
+    return new Date(`${year}-${month}-${day}`);
+  };
+
+  const startDate = parseDate(trip.startDate);
+  const endDate = parseDate(trip.endDate);
+
+  console.log("Datas convertidas:", startDate, endDate);
+
+  if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
+    toast.current?.show({
+      severity: 'error',
+      summary: 'Erro de Formato',
+      detail: 'Formato de data inválido. Use DD/MM/YYYY.',
+      life: 4000,
+    });
+    return;
+  }
+
+  if (startDate > endDate) {
     const el = document.getElementById('startDate');
     if (el) {
       el.scrollIntoView({ behavior: 'smooth', block: 'center' });
@@ -56,7 +77,7 @@ export const saveTrip = async (
     toast.current?.show({
       severity: 'error',
       summary: 'Erro de Validação',
-      detail: 'Data de início deve ser menor do que a data final.',
+      detail: 'Data de início deve ser anterior à data final.',
       life: 4000,
     });
 
