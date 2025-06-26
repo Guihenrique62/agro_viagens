@@ -34,7 +34,7 @@ export async function POST(req: NextRequest) {
         await transporter.sendMail({
           from: process.env.EMAIL_USER,
           to: process.env.EMAIL_ADM,
-          subject: 'AgroFinances - Confirmação de Finalização de Viagem',
+          subject: 'Agro Viagens - Confirmação de Finalização de Viagem',
           html: `
             <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto; padding: 24px; border: 1px solid #e0e0e0; border-radius: 10px; background-color: #fafafa;">
               <h2 style="color: #2E86DE; text-align: center;">Viagem Finalizada com Sucesso</h2>
@@ -54,7 +54,7 @@ export async function POST(req: NextRequest) {
               </p>
 
               <p style="margin-top: 40px; font-size: 14px; color: #999; text-align: center;">
-                © 2025 AgroFinances. Todos os direitos reservados.
+                © 2025 Agro Viagens. Todos os direitos reservados.
               </p>
             </div>
           `,
