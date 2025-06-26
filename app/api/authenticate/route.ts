@@ -58,6 +58,11 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'E-mail ou senha inválidos.' }, { status: 400 })
     }
 
+    // Se o usuário estiver inativo, retorna erro
+    if (user.status !== 1) {
+      return NextResponse.json({ error: 'Usuário inativo. Entre em contato com o administrador.' }, { status: 403 })
+    }
+
     
 
     // Verifica se a SECRET do JWT está definida

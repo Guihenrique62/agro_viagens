@@ -14,6 +14,7 @@ import { Toolbar } from 'primereact/toolbar';
 import { classNames } from 'primereact/utils';
 import React, { useEffect, useRef, useState } from 'react';
 import { set } from 'zod';
+import { ativateUser } from './untils/ativateUser';
 
 interface User {
   id: string;
@@ -48,8 +49,9 @@ const UsersPage = () => {
   const [userDialog, setUserDialog] = useState(false);
   const [deleteUserDialog, setDeleteUserDialog] = useState(false);
   const [editUserDialog, setEditUserDialog] = useState(false);
+  const [activeUserDialog, setActiveUserDialog] = useState(false);
 
-  
+
   const [selectedUsers, setSelectedUsers] = useState(null);
   const [submitted, setSubmitted] = useState(false);
 
@@ -65,9 +67,9 @@ const UsersPage = () => {
   const onGlobalFilterChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
     let _filters = { ...filters };
-  
+
     _filters['global'].value = value;
-  
+
     setFilters(_filters);
   };
 
@@ -113,6 +115,12 @@ const UsersPage = () => {
     setUserDialog(true);
   };
 
+  const openActive = (user: User) => {
+    setUser({ ...user });
+    setSubmitted(false);
+    setActiveUserDialog(true);
+  }
+
   //Abre o dialogo de editar usuario
   const openEdit = (user: User) => {
     setUser({ ...user });
@@ -139,74 +147,74 @@ const UsersPage = () => {
   const saveUser = async () => {
     setSubmitted(true);
 
-  if (user.name.trim() && user.email.trim() && user.password && user.role) {
-    let _users = [...users];
-    let _user = { ...user };
+    if (user.name.trim() && user.email.trim() && user.password && user.role) {
+      let _users = [...users];
+      let _user = { ...user };
 
-    if (user.id) {
-      const index = findIndexById(user.id);
-      _users[index] = _user;
-      toast.current?.show({
-        severity: 'success',
-        summary: 'Sucesso',
-        detail: 'Usuário Atualizado',
-        life: 3000,
-      });
-      setUsers(_users);
-    } else {
-      try {
-        const res = await fetch('/api/users', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          credentials: 'include',
-          body: JSON.stringify({
-            name: user.name,
-            email: user.email,
-            password: user.password,
-            role: user.role,
-          }),
-        });
-
-        if (!res.ok) {
-          const errorData = await res.json();
-          throw new Error(errorData.message || 'Erro ao criar usuário');
-        }
-
-        const createdUser = await res.json();
-        _user.id = createdUser.id; // assumindo que o back retorna o ID
-        _users.push(_user);
-
+      if (user.id) {
+        const index = findIndexById(user.id);
+        _users[index] = _user;
         toast.current?.show({
           severity: 'success',
           summary: 'Sucesso',
-          detail: 'Usuário Criado',
+          detail: 'Usuário Atualizado',
           life: 3000,
         });
-
         setUsers(_users);
-      } catch (err: any) {
-        console.error('Erro ao criar usuário:', err);
-        toast.current?.show({
-          severity: 'error',
-          summary: 'Erro',
-          detail: err.message || 'Erro ao criar usuário',
-          life: 3000,
-        });
-        return;
-      }
-    }
+      } else {
+        try {
+          const res = await fetch('/api/users', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            credentials: 'include',
+            body: JSON.stringify({
+              name: user.name,
+              email: user.email,
+              password: user.password,
+              role: user.role,
+            }),
+          });
 
-    setUserDialog(false);
-    setUser(emptyUser);
-  }
+          if (!res.ok) {
+            const errorData = await res.json();
+            throw new Error(errorData.message || 'Erro ao criar usuário');
+          }
+
+          const createdUser = await res.json();
+          _user.id = createdUser.id; // assumindo que o back retorna o ID
+          _users.push(_user);
+
+          toast.current?.show({
+            severity: 'success',
+            summary: 'Sucesso',
+            detail: 'Usuário Criado',
+            life: 3000,
+          });
+
+          setUsers(_users);
+        } catch (err: any) {
+          console.error('Erro ao criar usuário:', err);
+          toast.current?.show({
+            severity: 'error',
+            summary: 'Erro',
+            detail: err.message || 'Erro ao criar usuário',
+            life: 3000,
+          });
+          return;
+        }
+      }
+
+      setUserDialog(false);
+      setUser(emptyUser);
+    }
   };
 
   // Edita o usuario
   const editUser = async () => {
     if (!user.id) return;
-  
+
     try {
       const res = await fetch(`/api/users/${user.id}`, {
         method: 'PATCH',
@@ -220,9 +228,9 @@ const UsersPage = () => {
           role: user.role,
         }),
       });
-  
+
       const data = await res.json();
-  
+
       if (!res.ok) {
         toast.current?.show({
           severity: 'error',
@@ -232,21 +240,21 @@ const UsersPage = () => {
         });
         return;
       }
-  
+
       toast.current?.show({
         severity: 'success',
         summary: 'Sucesso',
         detail: 'Usuário atualizado com sucesso.',
         life: 3000,
       });
-  
+
       // Atualiza lista local
       const updatedUsers = users.map((u) => (u.id === user.id ? data : u));
       setUsers(updatedUsers);
       setUser(data);
       setEditUserDialog(false);
       setUser(emptyUser);
-  
+
     } catch (err) {
       console.error('Erro ao editar usuário:', err);
       toast.current?.show({
@@ -257,7 +265,7 @@ const UsersPage = () => {
       });
     }
   };
-  
+
   // Deleta o usuario
   const deleteUser = async () => {
     if (!user.id) return;
@@ -270,9 +278,9 @@ const UsersPage = () => {
         },
         credentials: 'include',
       });
-  
+
       const data = await res.json();
-  
+
       if (!res.ok) {
         toast.current?.show({
           severity: 'error',
@@ -282,14 +290,14 @@ const UsersPage = () => {
         });
         return;
       }
-  
+
       toast.current?.show({
         severity: 'success',
         summary: 'Sucesso',
         detail: 'Usuário excluido com sucesso.',
         life: 3000,
       });
-  
+
       // Atualiza lista local
       const updatedUsers = users.map((u) => (u.id === user.id ? data : u));
       setUsers(updatedUsers);
@@ -299,7 +307,7 @@ const UsersPage = () => {
       fetchUsers()
       setUser(emptyUser);
       setLoading(false)
-  
+
     } catch (err) {
       console.error('Erro ao excluir usuário:', err);
       toast.current?.show({
@@ -334,32 +342,50 @@ const UsersPage = () => {
   const roleBodyTemplate = (rowData: User) => <span>{rowData.role}</span>;
 
   const statusBodyTemplate = (rowData: User) => (
-      <>
-        {rowData.status === 1 ? (
-          <span className="product-badge status-available">Ativo</span>
-        ) : rowData.status === 2 ? (
-          <span className="product-badge status-outofstock">Inativo</span>
-        ) : null}
-      </>
-  );
-
-  const actionBodyTemplate = (rowData: User) => (
     <>
-      <Button
-        icon="pi pi-pencil"
-        rounded
-        severity="info"
-        className="mr-2"
-        onClick={() => openEdit(rowData)}
-      />
-      <Button
-        icon="pi pi-trash"
-        rounded
-        severity="danger"
-        onClick={() => confirmDeleteProduct(rowData)}
-      />
+      {rowData.status === 1 ? (
+        <span className="product-badge status-available">Ativo</span>
+      ) : rowData.status === 2 ? (
+        <span className="product-badge status-outofstock">Inativo</span>
+      ) : null}
     </>
   );
+
+  const actionBodyTemplate = (rowData: User) => {
+    if (rowData.status === 1) {
+      // Botões para transportes ativos (editar/excluir)
+      return (
+        <>
+          <Button
+            icon="pi pi-pencil"
+            rounded
+            severity="info"
+            className="mr-2"
+            onClick={() => openEdit(rowData)}
+          />
+          <Button
+            icon="pi pi-trash"
+            rounded
+            severity="danger"
+            onClick={() => confirmDeleteProduct(rowData)}
+          />
+        </>
+      );
+    } else {
+      // Botão para transportes inativos (reativar)
+      return (
+        <Button
+          icon="pi pi-refresh"
+          rounded
+          severity="success"
+          tooltip="Reativar transporte"
+          tooltipOptions={{ position: 'top' }}
+          onClick={() => openActive(rowData)}
+        />
+      );
+    }
+  }
+
 
   const leftToolbarTemplate = () => (
     <div className="my-2">
@@ -371,15 +397,15 @@ const UsersPage = () => {
   const header = (
     <div className="flex flex-column md:flex-row md:justify-content-between md:align-items-center">
       <h5 className="m-0">Cadastro de Usuários</h5>
-        <span className="block mt-2 md:mt-0 p-input-icon-left">
-          <i className="pi pi-search" />
-          <InputText
-            type="search"
-            value={filters.global.value}
-            onChange={onGlobalFilterChange}
-            placeholder="Buscar..."
-          />
-        </span>
+      <span className="block mt-2 md:mt-0 p-input-icon-left">
+        <i className="pi pi-search" />
+        <InputText
+          type="search"
+          value={filters.global.value}
+          onChange={onGlobalFilterChange}
+          placeholder="Buscar..."
+        />
+      </span>
     </div>
   );
 
@@ -404,14 +430,34 @@ const UsersPage = () => {
     </>
   );
 
+  const handleActiveUser = () => {
+    ativateUser(
+      user,
+      setActiveUserDialog,
+      setUser,
+      setUsers,
+      users,
+      toast,
+      emptyUser,
+    )
+  }
+
+  const activeUserDialogFooter = (
+    <>
+      <Button label="Não" icon="pi pi-times" text onClick={() => setActiveUserDialog(false)} />
+      <Button label="Sim" icon="pi pi-check" text onClick={handleActiveUser} />
+    </>
+  );
+
+
 
   return (
     <div className="grid crud-demo">
       <div className="col-12">
         <div className="card">
-          
+
           <Toast ref={toast} />
-          <Toolbar className="mb-4" left={leftToolbarTemplate}  />
+          <Toolbar className="mb-4" left={leftToolbarTemplate} />
           {loading ? (
             <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '300px' }}>
               <ProgressSpinner
@@ -485,11 +531,11 @@ const UsersPage = () => {
             </div>
             <div className="field">
               <label htmlFor="role">Permissão</label>
-              <Dropdown 
-                value={user.role} 
-                onChange={(e) => setUser({ ...user, role: e.value })} 
-                options={['Administrador', 'UsuarioPadrao']} 
-                placeholder="Selecione" className="w-full md:w-14rem" 
+              <Dropdown
+                value={user.role}
+                onChange={(e) => setUser({ ...user, role: e.value })}
+                options={['Administrador', 'UsuarioPadrao']}
+                placeholder="Selecione" className="w-full md:w-14rem"
               />
               {submitted && !user.role && <small className="p-invalid">O usuário é obrigatório</small>}
             </div>
@@ -497,38 +543,38 @@ const UsersPage = () => {
 
           <Dialog visible={editUserDialog} style={{ width: '450px' }} header="Editar Usuário" modal className="p-fluid" footer={editUserDialogFooter} onHide={hideEditUserDialog}>
             <div className="field">
-                <label htmlFor="name">Nome</label>
-                <InputText
-                  id="name"
-                  value={user.name}
-                  onChange={(e) => onInputChange(e, 'name')}
-                  required
-                  autoFocus
-                  className={classNames({ 'p-invalid': submitted && !user.name })}
-                />
-                {submitted && !user.name && <small className="p-invalid">O nome é obrigatório</small>}
-              </div>
-              <div className="field">
-                <label htmlFor="email">E-mail</label>
-                <InputText
-                  id="email"
-                  value={user.email}
-                  onChange={(e) => onInputChange(e, 'email')}
-                  required
-                  className={classNames({ 'p-invalid': submitted && !user.email })}
-                />
-                {submitted && !user.email && <small className="p-invalid">O e-mail é obrigatório</small>}
-              </div>
-              <div className="field">
-                <label htmlFor="role">Permissão</label>
-                <Dropdown 
-                  value={user.role} 
-                  onChange={(e) => setUser({ ...user, role: e.value })} 
-                  options={['Administrador', 'UsuarioPadrao']} 
-                  placeholder="Selecione" className="w-full md:w-14rem" 
-                />
-                {submitted && !user.role && <small className="p-invalid">a permissão é obrigatório</small>}
-              </div>
+              <label htmlFor="name">Nome</label>
+              <InputText
+                id="name"
+                value={user.name}
+                onChange={(e) => onInputChange(e, 'name')}
+                required
+                autoFocus
+                className={classNames({ 'p-invalid': submitted && !user.name })}
+              />
+              {submitted && !user.name && <small className="p-invalid">O nome é obrigatório</small>}
+            </div>
+            <div className="field">
+              <label htmlFor="email">E-mail</label>
+              <InputText
+                id="email"
+                value={user.email}
+                onChange={(e) => onInputChange(e, 'email')}
+                required
+                className={classNames({ 'p-invalid': submitted && !user.email })}
+              />
+              {submitted && !user.email && <small className="p-invalid">O e-mail é obrigatório</small>}
+            </div>
+            <div className="field">
+              <label htmlFor="role">Permissão</label>
+              <Dropdown
+                value={user.role}
+                onChange={(e) => setUser({ ...user, role: e.value })}
+                options={['Administrador', 'UsuarioPadrao']}
+                placeholder="Selecione" className="w-full md:w-14rem"
+              />
+              {submitted && !user.role && <small className="p-invalid">a permissão é obrigatório</small>}
+            </div>
           </Dialog>
 
           <Dialog visible={deleteUserDialog} style={{ width: '450px' }} header="Confirmar" modal footer={deleteUserDialogFooter} onHide={hideDeleteProductDialog}>
@@ -538,7 +584,14 @@ const UsersPage = () => {
             </div>
           </Dialog>
 
-          
+          <Dialog visible={activeUserDialog} style={{ width: '450px' }} header="Confirmar" modal footer={activeUserDialogFooter} onHide={() => setActiveUserDialog(false)}>
+            <div className="confirmation-content">
+              <i className="pi pi-exclamation-triangle mr-3" />
+              {user && <span>Tem certeza que deseja ativar o usuario de <b>{user.name}</b>?</span>}
+            </div>
+          </Dialog>
+
+
         </div>
       </div>
     </div>

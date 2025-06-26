@@ -9,7 +9,8 @@ const updateSchema = z.object({
   name: z.string().optional(),
   email: z.string().email().optional(),
   password: z.string().min(6).optional(),
-  role: z.enum(['Administrador', 'UsuarioPadrao']).optional()
+  role: z.enum(['Administrador', 'UsuarioPadrao']).optional(),
+  status: z.number().optional()
 })
 
 export async function PATCH(req: NextRequest, {params}: {params: Promise<{ id: string }>}) {
@@ -57,7 +58,8 @@ export async function PATCH(req: NextRequest, {params}: {params: Promise<{ id: s
         name: true,
         email: true,
         role: true,
-        createdAt: true
+        createdAt: true,
+        status: true
       }
     })
 
@@ -96,6 +98,7 @@ export async function GET(req: NextRequest, {params}: {params: Promise<{ id: str
         role: true,
         status: true,
         createdAt: true
+        
       }
     })
 
@@ -131,10 +134,29 @@ export async function DELETE(req: NextRequest, {params}: {params: Promise<{ id: 
 
   try {
 
-    // Deleta o usuário pelo ID
-    await prisma.users.delete({ where: { id } })
+    // Verifica se existem trip_transport vinculadas a esta trasport
+    const userTripsCount = await prisma.trips.count({
+      where: { userId: id }
+    });
 
-    return NextResponse.json({ message: 'Usuário deletado com sucesso.' }, { status: 200 })
+    if (userTripsCount > 0) {
+      // Se existirem trips vinculadas, apenas atualiza o status para 2 (inativo)
+      await prisma.users.update({
+        where: { id: id },
+        data: { status: 2 }
+      });
+      
+      return NextResponse.json(
+        { message: 'Transporte marcado como inativo (status 2) pois possui registros vinculados.' }, 
+        { status: 200 }
+      );
+    }else{
+
+      // Deleta o usuário pelo ID
+      await prisma.users.delete({ where: { id } })
+
+      return NextResponse.json({ message: 'Usuário deletado com sucesso.' }, { status: 200 })
+    }
 
   } catch (error: any) {
     
