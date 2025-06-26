@@ -6,6 +6,7 @@ import { verifyAuthHeader } from '../../lib/auth'
 
 const updateSchema = z.object({
   name: z.string().optional(),
+  status: z.number().optional(),
 })
 
 export async function PATCH(req: NextRequest, {params}: {params: Promise<{ id: string }>}) {

@@ -15,6 +15,16 @@ export const statusTrip = async (
 ) => {
   if (!trip.id) return;
 
+    if (trip.startKM > trip.endKM) {
+      toast.current?.show({
+        severity: 'error',
+        summary: 'Erro',
+        detail: 'A quilometragem inicial não pode ser maior que a quilometragem final, verifique os valores!',
+        life: 5000,
+      });
+      return;
+    }
+
     try {
       setLoading(true)
 

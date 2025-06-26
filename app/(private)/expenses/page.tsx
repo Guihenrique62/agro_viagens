@@ -17,6 +17,7 @@ import { ExpenseDialog } from './components/ExpenseDialog/ExpenseDialog';
 
 import { ExpenseDialogEdit } from './components/ExpenseDialogEdit/ExpenseDialogEdit';
 import ExpenseTable from './components/ExpenseTable/ExpenseTable';
+import { reactiveExpense } from './untils/reactiveExpense';
 
 
 
@@ -35,6 +36,7 @@ const ExpensesPage = () => {
   const [expenseDialog, setExpenseDialog] = useState(false);
   const [deleteExpenseDialog, setDeleteExpenseDialog] = useState(false);
   const [editExpenseDialog, setEditExpenseDialog] = useState(false);
+  const [reactiveExpenseDialog, setReactiveExpenseDialog] = useState(false);
 
   
   const [selectedExpenses, setSelectedExpenses] = useState(null);
@@ -110,6 +112,18 @@ const ExpensesPage = () => {
       emptyExpense
      )
  }
+
+ const handleReactiveExpense = () => {
+     reactiveExpense(
+       expense,
+       setReactiveExpenseDialog,
+       setExpense,
+       setExpenses,
+       expenses,
+       toast,
+       emptyExpense,
+     )
+   }
   
   // Deleta a despesa
   const handleDeleteExpense = () => {
@@ -133,6 +147,11 @@ const ExpensesPage = () => {
     setDeleteExpenseDialog(true);
   };
 
+  const confirmReactivateExpense = (expense: Expense) => {
+    setExpense(expense);
+    setReactiveExpenseDialog(true);
+  };
+
   const findIndexById = (id: number) => expenses.findIndex((u) => u.id === id);
 
   const onInputChange = (
@@ -146,33 +165,6 @@ const ExpensesPage = () => {
 
   const nameBodyTemplate = (rowData: Expense) => <span>{rowData.name}</span>;
 
-  const statusBodyTemplate = (rowData: Expense) => (
-      <>
-        {rowData.status === 1 ? (
-          <span className="product-badge status-available">Ativo</span>
-        ) : rowData.status === 2 ? (
-          <span className="product-badge status-outofstock">Inativo</span>
-        ) : null}
-      </>
-  );
-
-  const actionBodyTemplate = (rowData: Expense) => (
-    <>
-      <Button
-        icon="pi pi-pencil"
-        rounded
-        severity="info"
-        className="mr-2"
-        onClick={() => openEdit(rowData)}
-      />
-      <Button
-        icon="pi pi-trash"
-        rounded
-        severity="danger"
-        onClick={() => confirmDeleteProduct(rowData)}
-      />
-    </>
-  );
 
   const leftToolbarTemplate = () => (
     <div className="my-2">
@@ -226,6 +218,13 @@ const ExpensesPage = () => {
     </>
   );
 
+  const reactiveExpenseDialogFooter = (
+    <>
+      <Button label="Não" icon="pi pi-times" text onClick={() => setReactiveExpenseDialog(false)} />
+      <Button label="Sim" icon="pi pi-check" text onClick={handleReactiveExpense} />
+    </>
+  );
+
 
   return (
     <div className="grid crud-demo">
@@ -244,8 +243,9 @@ const ExpensesPage = () => {
             header={header}
             filters={filters}
             nameBodyTemplate={nameBodyTemplate}
-            statusBodyTemplate={statusBodyTemplate}
-            actionBodyTemplate={actionBodyTemplate}
+            openEdit={openEdit}
+            confirmDeleteProduct={confirmDeleteProduct}
+            confirmReactivateExpense={confirmReactivateExpense}
 
           />
 
@@ -270,7 +270,14 @@ const ExpensesPage = () => {
           <Dialog visible={deleteExpenseDialog} style={{ width: '450px' }} header="Confirmar" modal footer={deleteExpenseDialogFooter} onHide={hideDeleteProductDialog}>
             <div className="confirmation-content">
               <i className="pi pi-exclamation-triangle mr-3" />
-              {expense && <span>Tem certeza que deseja excluir <b>{expense.name}</b>?</span>}
+              {expense && <span>Tem certeza que deseja excluir <b>{expense.name}? A despesa deixará de ser exibida ao usuário!</b>?</span>}
+            </div>
+          </Dialog>
+
+          <Dialog visible={reactiveExpenseDialog} style={{ width: '450px' }} header="Confirmar" modal footer={reactiveExpenseDialogFooter} onHide={() => setReactiveExpenseDialog(false)}>
+            <div className="confirmation-content">
+              <i className="pi pi-exclamation-triangle mr-3" />
+              {expense && <span>Deseja Reativar a despesa <b>{expense.name}? A despesa voltará a ser mostrada como opção ao usuário!</b>?</span>}
             </div>
           </Dialog>
 

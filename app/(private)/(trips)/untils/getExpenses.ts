@@ -25,7 +25,7 @@ export const getExpenses = async (toast: any, setTypeExpenseOptions: any) => {
         return;
       }
       
-      setTypeExpenseOptions(data);
+      setTypeExpenseOptions(data.filter((exp: any) => exp.status === 1));
     } catch (err) {
       console.error('Erro inesperado:', err);
     }

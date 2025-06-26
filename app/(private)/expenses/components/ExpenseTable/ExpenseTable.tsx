@@ -1,6 +1,8 @@
 import { Column } from "primereact/column"
 import { DataTable } from "primereact/datatable"
 import { ProgressSpinner } from "primereact/progressspinner"
+import { Expense } from "../../expenses.types";
+import { Button } from "primereact/button";
 
 const ExpenseTable = ({
   dt,
@@ -11,9 +13,55 @@ const ExpenseTable = ({
   header,
   filters,
   nameBodyTemplate,
-  statusBodyTemplate,
-  actionBodyTemplate
+  openEdit,
+  confirmDeleteProduct,
+  confirmReactivateExpense
 }: any) => { 
+
+  const statusBodyTemplate = (rowData: Expense) => (
+      <>
+        {rowData.status === 1 ? (
+          <span className="product-badge status-available">Ativo</span>
+        ) : rowData.status === 2 ? (
+          <span className="product-badge status-outofstock">Inativo</span>
+        ) : null}
+      </>
+  );
+
+  const actionBodyTemplate = (rowData: Expense) => {
+    if (rowData.status === 1) {
+      // Botões para despesas ativas (editar/excluir)
+      return (
+        <>
+          <Button
+            icon="pi pi-pencil"
+            rounded
+            severity="info"
+            className="mr-2"
+            onClick={() => openEdit(rowData)}
+          />
+          <Button
+            icon="pi pi-trash"
+            rounded
+            severity="danger"
+            onClick={() => confirmDeleteProduct(rowData)}
+          />
+        </>
+      );
+    } else {
+      // Botão para despesas inativas (reativar)
+      return (
+        <Button
+          icon="pi pi-refresh"
+          rounded
+          severity="success"
+          tooltip="Reativar despesa"
+          tooltipOptions={{ position: 'top' }}
+          onClick={() => confirmReactivateExpense(rowData)}
+        />
+      );
+    }
+  };
   
   if (loading) {
     return (
