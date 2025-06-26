@@ -5,8 +5,9 @@ import { ProgressSpinner } from "primereact/progressspinner"
 import { Trip } from "../../trips.types";
 import { Button } from "primereact/button";
 import { getReportClient, getReportFinancial, getReportProof } from "../../untils/getReports";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { OverlayPanel } from "primereact/overlaypanel";
+import { jwtDecode } from "jwt-decode";
 
 export const TripTable = ({
   dt,
@@ -23,6 +24,25 @@ export const TripTable = ({
   setTripFinishDialog,
   setTripReopenDialog
 }: any) => {
+  const [user, setUser] = useState<any>(null);
+
+  useEffect(() => {
+    const fetchUser = async () => {
+      const res = await fetch('/api/isAdmin', {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+      });
+      if (!res.ok) return;
+      const data = await res.json();
+      setUser(data);
+    };
+    fetchUser();
+  }, []);
+
+ 
 
   const confirmDeleteTrip = (trip: Trip) => {
     setTrip(trip);
@@ -66,52 +86,57 @@ export const TripTable = ({
 const ActionBodyTemplate = (rowData: Trip) => {
   const actionsMenuRef = useRef<any>(null);
   const downloadsMenuRef = useRef<any>(null);
+  let isAdmin = false;
 
-  // Menu base de ações
-  const baseActionItems = [
-    {
-      label: 'Editar',
-      icon: 'pi pi-pencil',
-      command: () => openEdit(rowData)
-    },
-    {
-      label: 'Excluir',
-      icon: 'pi pi-trash',
-      command: () => confirmDeleteTrip(rowData)
-    },
-    {
-      label: 'Despesas',
-      icon: 'pi pi-cart-plus',
-      command: () => openExpenses(rowData)
-    }
-  ];
+  user?.role === 'Administrador' ? isAdmin = true : isAdmin = false;
 
-  // Ação de aprovação (só aparece se não estiver finalizada)
-  const approveAction = {
-    label: 'Finalizar',
-    icon: 'pi pi-check',
-    command: () => confirmFinishTrip(rowData)
-  };
-
-  // Filtra as ações baseadas no status
+  // Menu base de ações (só visível para admin ou viagens não finalizadas)
   const getActionItems = () => {
     if (rowData.status === "Finalizada") {
-      // Se finalizada, mostra apenas Excluir e reabrir
-      const actions = baseActionItems.filter((item) => (item.label === 'Excluir'));
-      return [...actions, {
-        label: 'Reabrir',
-        icon: 'pi pi-refresh',
-        command: () => confirmReopenTrip(rowData)
-      }];
+      if (!isAdmin) return []; // Usuários comuns não veem ações para viagens finalizadas
+      
+      return [
+        {
+          label: 'Excluir',
+          icon: 'pi pi-trash',
+          command: () => confirmDeleteTrip(rowData)
+        },
+        {
+          label: 'Reabrir',
+          icon: 'pi pi-refresh',
+          command: () => confirmReopenTrip(rowData)
+        }
+      ];
     } else {
-      // Se não finalizada, mostra todas as ações + Aprovar
-      return [...baseActionItems, approveAction];
+      // Todas as ações para viagens não finalizadas
+      return [
+        {
+          label: 'Editar',
+          icon: 'pi pi-pencil',
+          command: () => openEdit(rowData)
+        },
+        {
+          label: 'Excluir',
+          icon: 'pi pi-trash',
+          command: () => confirmDeleteTrip(rowData)
+        },
+        {
+          label: 'Despesas',
+          icon: 'pi pi-cart-plus',
+          command: () => openExpenses(rowData)
+        },
+        {
+          label: 'Finalizar',
+          icon: 'pi pi-check',
+          command: () => confirmFinishTrip(rowData)
+        }
+      ];
     }
   };
 
   const actionItems = getActionItems();
 
-  // Menu de downloads (mantém o mesmo independente do status)
+  // Menu de downloads (sempre visível)
   const downloadItems = [
     {
       label: 'Relatório Financeiro',
@@ -142,15 +167,10 @@ const ActionBodyTemplate = (rowData: Trip) => {
             className="p-button-sm"
             onClick={(e) => {
               e.stopPropagation();
-              if (actionsMenuRef.current) {
-                actionsMenuRef.current.toggle(e);
-              }
+              actionsMenuRef.current?.toggle(e);
             }}
           />
-          <OverlayPanel 
-            ref={actionsMenuRef}
-            onHide={() => {}}
-          >
+          <OverlayPanel ref={actionsMenuRef}>
             {actionItems.map((item, i) => (
               <Button 
                 key={`action-${i}`}
@@ -160,9 +180,7 @@ const ActionBodyTemplate = (rowData: Trip) => {
                 onClick={(e) => {
                   e.stopPropagation();
                   item.command();
-                  if (actionsMenuRef.current) {
-                    actionsMenuRef.current.hide();
-                  }
+                  actionsMenuRef.current?.hide();
                 }}
               />
             ))}
@@ -179,15 +197,10 @@ const ActionBodyTemplate = (rowData: Trip) => {
           className="p-button-sm"
           onClick={(e) => {
             e.stopPropagation();
-            if (downloadsMenuRef.current) {
-              downloadsMenuRef.current.toggle(e);
-            }
+            downloadsMenuRef.current?.toggle(e);
           }}
         />
-        <OverlayPanel 
-          ref={downloadsMenuRef}
-          onHide={() => {}}
-        >
+        <OverlayPanel ref={downloadsMenuRef}>
           {downloadItems.map((item, i) => (
             <Button 
               key={`download-${i}`}
@@ -197,9 +210,7 @@ const ActionBodyTemplate = (rowData: Trip) => {
               onClick={(e) => {
                 e.stopPropagation();
                 item.command();
-                if (downloadsMenuRef.current) {
-                  downloadsMenuRef.current.hide();
-                }
+                downloadsMenuRef.current?.hide();
               }}
             />
           ))}
@@ -222,7 +233,7 @@ const ActionBodyTemplate = (rowData: Trip) => {
   );
 
   const destinationBodyTemplate = (rowData: Trip) => <span>{rowData.destination}</span>;
-  const clientBodyTemplate = (rowData: Trip) => <span>{rowData.client}</span>;
+  const clientBodyTemplate = (rowData: Trip) => <span>{rowData.client} - {rowData.cpf_cnpj}</span>;
   const startDateBodyTemplate = (rowData: Trip) => {
 
     const [year, month, day] = new Date(rowData.startDate).toISOString().split('T')[0].split('-');

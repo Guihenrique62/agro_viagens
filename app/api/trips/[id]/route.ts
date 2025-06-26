@@ -21,6 +21,7 @@ const updateTripSchema = z.object({
   transportIds: z.array(z.number().int('ID de transporte inválido')).min(1, 'Selecione ao menos um transporte'),
   startKM: z.number(),
   endKM: z.number(),
+  cpf_cnpj: z.string().min(1, 'CPF/CNPJ obrigatório')
 })
 
 export async function PATCH(req: NextRequest, {params}: {params: Promise<{ id: string }>}) {
@@ -58,7 +59,8 @@ export async function PATCH(req: NextRequest, {params}: {params: Promise<{ id: s
       parameters_kmId,
       transportIds,
       startKM,
-      endKM
+      endKM,
+      cpf_cnpj
     } = parsed.data
 
     const existingTrip = await prisma.trips.findUnique({ where: { id: tripId } })
@@ -95,7 +97,8 @@ export async function PATCH(req: NextRequest, {params}: {params: Promise<{ id: s
         endDate: new Date(endDate),
         parameters_kmId,
         startKM,
-        endKM
+        endKM,
+        cpf_cnpj
       }
     })
 

@@ -37,6 +37,23 @@ export const editTrip = async (
         //   return;
         // }
 
+
+         if(trip.cpf_cnpj && ![11, 14].includes(trip.cpf_cnpj.replace(/\D/g, '').length)) {
+            const el = document.getElementById('cpf_cnpj');
+            if (el) {
+              el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+              el.focus?.();
+            }
+            toast.current?.show({
+              severity: 'error',
+              summary: 'Documento Inválido',
+              detail: 'CPF deve ter 11 dígitos ou CNPJ deve ter 14 dígitos.',
+              life: 4000,
+            });
+            return;
+          }
+
+
         // Função para converter DD/MM/YYYY para Date
         const parseDate = (dateString: string) => {
           const [day, month, year] = dateString.split('/');
@@ -114,7 +131,8 @@ export const editTrip = async (
           parameters_kmId: parameterId,
           transportIds: selectedTransports,
           startKM: trip.startKM,
-          endKM: trip.endKM
+          endKM: trip.endKM,
+          cpf_cnpj: trip.cpf_cnpj, 
         }),
       });
   

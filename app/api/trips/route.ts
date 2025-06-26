@@ -21,6 +21,7 @@ const tripSchema = z.object({
   transportIds: z.array(z.number().int('ID de transporte inválido')).min(1, 'Selecione ao menos um transporte'),
   startKM: z.number(),
   endKM: z.number(),
+  cpf_cnpj: z.string().min(1, 'CPF/CNPJ obrigatório')
 
 })
 
@@ -51,7 +52,8 @@ export async function POST(req: NextRequest) {
       parameters_kmId,
       transportIds,
       startKM,
-      endKM
+      endKM,
+      cpf_cnpj
     } = parsed.data
 
 
@@ -93,7 +95,8 @@ export async function POST(req: NextRequest) {
         parameters_kmId,
         status: 'EmAndamento',
         startKM,
-        endKM
+        endKM,
+        cpf_cnpj
       },
       select: {
         id: true,
@@ -110,6 +113,7 @@ export async function POST(req: NextRequest) {
         status: true,
         startKM: true,
         endKM: true,
+        cpf_cnpj: true,
         user : {
           select: {
             name: true,

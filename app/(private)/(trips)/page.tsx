@@ -46,6 +46,7 @@ const TripsPage = () => {
     endDate: '',
     status: '',
     parameters_kmId: '',
+    cpf_cnpj: '',
     transports: [],
     user: {
       id: '',

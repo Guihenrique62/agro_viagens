@@ -44,7 +44,7 @@ export const TripDialog = ({
 
 
         <div className="field">
-          <label htmlFor="client">Cliente - Razão Social e CNPJ <span style={{ color: 'red' }}>*</span></label>
+          <label htmlFor="client">Cliente - Razão Social <span style={{ color: 'red' }}>*</span></label>
           <InputText
             id="client"
             value={trip.client}
@@ -53,6 +53,35 @@ export const TripDialog = ({
             className={classNames({ 'p-invalid': submitted && !trip.client })}
           />
           {submitted && !trip.client && <small className="p-invalid">Cliente é obrigatório!</small>}
+        </div>
+        
+        <div className="field">
+          <label htmlFor="cpf_cnpj">CNPJ/CPF <span style={{ color: 'red' }}>*</span></label>
+          <InputText
+            id="cpf_cnpj"
+            value={trip.cpf_cnpj}
+            onChange={(e) => onInputChange(e, 'cpf_cnpj')}
+            placeholder="Digite somente números"
+            onBlur={(e) => {
+              const digits = e.target.value.replace(/\D/g, ''); // Remove tudo que não for número
+              let maskedValue = digits;
+
+              if (digits.length === 11) { // CPF
+                maskedValue = digits.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4');
+              } else if (digits.length === 14) { // CNPJ
+                maskedValue = digits.replace(/(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})/, '$1.$2.$3/$4-$5');
+              }
+              // Se não for nem 11 nem 14, mantém sem formatação (será validado depois)
+
+              setTrip({ ...trip, cpf_cnpj: maskedValue });
+            }}
+            className={classNames({ 'p-invalid': submitted && !trip.client })}
+            required
+          />
+          {submitted && !trip.cpf_cnpj && <small className="p-invalid">CPF/CNPJ é obrigatório!</small>}
+          {trip.cpf_cnpj && ![11, 14].includes(trip.cpf_cnpj.replace(/\D/g, '').length) && (
+            <small className="p-invalid">Documento inválido (CPF 11 dígitos, CNPJ de 14)</small>
+          )}
         </div>
 
         <div className="field">
@@ -100,7 +129,7 @@ export const TripDialog = ({
             id="type"
             value={trip.type}
             onChange={(e) => setTrip({ ...trip, type: e.value })}
-            options={['Cortesia', 'Comercial', 'Entre Unidades', 'Acordo', 'Visita']}
+            options={['Cortesia', 'Comercial', 'Entre Unidades', 'Visita']}
             placeholder="Selecione"
             className={classNames('w-full md:w-14rem', {
               'p-invalid': submitted && !trip.type,

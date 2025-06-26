@@ -13,6 +13,7 @@ export interface Trip {
   parameters_kmId: string;
   startKM: number;
   endKM: number;
+  cpf_cnpj: string; // CPF ou CNPJ do cliente
   transports: {
     id: number;
     name: string;

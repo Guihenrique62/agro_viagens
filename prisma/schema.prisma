@@ -81,6 +81,7 @@ model trips {
   userId String @db.Uuid
   destination String
   client String
+  cpf_cnpj String @default("")
   reason String
   escort String?
   type String

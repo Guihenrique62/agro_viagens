@@ -25,6 +25,7 @@ export const saveTrip = async (
     { id: 'startDate', label: 'Data Início', value: trip.startDate },
     { id: 'endDate', label: 'Data Fim', value: trip.endDate },
     { id: 'transports', label: 'Transportes', value: selectedTransports?.length > 0 },
+    { id: 'cpf_cnpj', label: 'CPF/CNPJ', value: trip.cpf_cnpj?.trim() },
   ];
 
   const invalidField = requiredFields.find(field => !field.value);
@@ -45,6 +46,22 @@ export const saveTrip = async (
 
     return;
   }
+
+  if(trip.cpf_cnpj && ![11, 14].includes(trip.cpf_cnpj.replace(/\D/g, '').length)) {
+    const el = document.getElementById('cpf_cnpj');
+    if (el) {
+      el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      el.focus?.();
+    }
+    toast.current?.show({
+      severity: 'error',
+      summary: 'Documento Inválido',
+      detail: 'CPF deve ter 11 dígitos ou CNPJ deve ter 14 dígitos.',
+      life: 4000,
+    });
+    return;
+  }
+
 
   // Função para converter DD/MM/YYYY para Date
   const parseDate = (dateString: string) => {
@@ -153,7 +170,8 @@ export const saveTrip = async (
           parameters_kmId: parameterId,
           transportIds: selectedTransports,
           startKM: trip.startKM,
-          endKM: trip.endKM
+          endKM: trip.endKM,
+          cpf_cnpj: trip.cpf_cnpj,
         }),
       });
 
