@@ -180,7 +180,7 @@ export default function TripExpenseDialog(
           url="/api/upload"
           accept="image/*, application/pdf"
           auto
-          maxFileSize={5000000}
+          maxFileSize={50000000}
           onBeforeUpload={() => setUploading(true)}
           onUpload={(e) => {
         try {
