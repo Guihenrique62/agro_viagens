@@ -25,6 +25,7 @@ export async function GET(_: NextRequest, { params }: { params: { id: string } }
   const pdfDoc = await PDFDocument.create()
   const font = await pdfDoc.embedFont(StandardFonts.Helvetica)
 
+  // Página de capa
   const cover = pdfDoc.addPage([595, 842]) // A4
   const { height } = cover.getSize()
 
@@ -56,6 +57,7 @@ export async function GET(_: NextRequest, { params }: { params: { id: string } }
     textY -= 18
   }
 
+  // Processar cada despesa
   for (const expense of trip.trip_expenses) {
     const proofUrl = expense.proof
     if (!proofUrl) continue
@@ -83,22 +85,79 @@ export async function GET(_: NextRequest, { params }: { params: { id: string } }
           ? await pdfDoc.embedPng(new Uint8Array(fileBuffer))
           : await pdfDoc.embedJpg(new Uint8Array(fileBuffer))
 
-        const imgDims = image.scale(0.5)
+        // NOVO CÓDIGO - Redimensionamento responsivo
         const page = pdfDoc.addPage([595, 842])
+        const margin = 50
+        const maxWidth = 595 - (margin * 2) // Largura máxima disponível
+        const maxHeight = 600 - (margin * 2) // Altura máxima disponível
 
-        page.drawText(`Despesa: ${expense.expenses?.name}`, {
-          x: 50,
+        // Obter dimensões originais
+        const originalWidth = image.width
+        const originalHeight = image.height
+
+        // Calcular proporções mantendo aspect ratio
+        let width = originalWidth
+        let height = originalHeight
+
+        // Redimensionar se exceder a largura máxima
+        if (width > maxWidth) {
+          const ratio = maxWidth / width
+          width = maxWidth
+          height = height * ratio
+        }
+
+        // Redimensionar se exceder a altura máxima
+        if (height > maxHeight) {
+          const ratio = maxHeight / height
+          height = maxHeight
+          width = width * ratio
+        }
+
+        // Centralizar a imagem na página
+        const x = (595 - width) / 2
+        const y = 700 - height // Posicionar mais acima na página
+
+        // Adicionar informações da despesa
+        page.drawText(`Despesa: ${expense.expenses?.name || 'N/A'}`, {
+          x: margin,
           y: 780,
           size: 14,
           font,
         })
 
-        page.drawImage(image, {
-          x: (595 - imgDims.width) / 2,
-          y: 150,
-          width: imgDims.width,
-          height: imgDims.height,
+        page.drawText(`Valor: R$ ${expense.value.toFixed(2)}`, {
+          x: margin,
+          y: 760,
+          size: 12,
+          font,
         })
+
+        page.drawText(`Observação: ${expense.observation || 'Sem observação'}`, {
+          x: margin,
+          y: 740,
+          size: 10,
+          font,
+          maxWidth: 500,
+        })
+
+        // Desenhar a imagem com o tamanho calculado
+        page.drawImage(image, {
+          x,
+          y,
+          width,
+          height,
+        })
+
+        // Adicionar borda ao redor da imagem (opcional)
+        page.drawRectangle({
+          x: x - 2,
+          y: y - 2,
+          width: width + 4,
+          height: height + 4,
+          borderColor: rgb(0.8, 0.8, 0.8),
+          borderWidth: 1,
+        })
+
       } else if (type.mime === 'application/pdf') {
         const otherPdf = await PDFDocument.load(new Uint8Array(fileBuffer))
         const copiedPages = await pdfDoc.copyPages(otherPdf, otherPdf.getPageIndices())
@@ -108,10 +167,48 @@ export async function GET(_: NextRequest, { params }: { params: { id: string } }
         })
       } else {
         console.warn(`Tipo de arquivo não suportado (${type.mime}) em ${proofUrl}`)
+        
+        // Adicionar página informativa para arquivos não suportados
+        const page = pdfDoc.addPage([595, 842])
+        page.drawText(`Despesa: ${expense.expenses?.name || 'N/A'}`, {
+          x: 50,
+          y: 780,
+          size: 14,
+          font,
+        })
+        page.drawText(`Arquivo não suportado: ${proofUrl}`, {
+          x: 50,
+          y: 750,
+          size: 12,
+          font,
+          color: rgb(1, 0, 0),
+        })
       }
     } catch (err) {
-      console.error(`Erro ao embutir arquivo ${proofUrl}:`, err)
+      console.error(`Erro ao processar arquivo ${proofUrl}:`, err)
+      
+      // Adicionar página de erro
+      const page = pdfDoc.addPage([595, 842])
+      page.drawText(`Erro ao processar comprovante: ${expense.expenses?.name || 'N/A'}`, {
+        x: 50,
+        y: 780,
+        size: 14,
+        font,
+        color: rgb(1, 0, 0),
+      })
     }
+  }
+
+  // Se não houver comprovantes, adicionar mensagem
+  if (trip.trip_expenses.length === 0 || trip.trip_expenses.every(e => !e.proof)) {
+    const page = pdfDoc.addPage([595, 842])
+    page.drawText('Nenhum comprovante encontrado para esta viagem', {
+      x: 150,
+      y: 400,
+      size: 16,
+      font,
+      color: rgb(0.5, 0.5, 0.5),
+    })
   }
 
   const pdfBytes = await pdfDoc.save()
