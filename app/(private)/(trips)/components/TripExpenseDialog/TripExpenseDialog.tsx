@@ -7,7 +7,7 @@ import { InputNumber } from "primereact/inputnumber";
 import { InputText } from "primereact/inputtext";
 import { InputTextarea } from "primereact/inputtextarea";
 import { classNames } from "primereact/utils";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Trip, TripExpense } from "../../trips.types";
 import { ProgressSpinner } from "primereact/progressspinner";
 
@@ -38,6 +38,20 @@ export default function TripExpenseDialog(
   const [uploading, setUploading] = useState(false);
   const [uploadSuccess, setUploadSuccess] = useState(false);
 
+  const fileInputRef = useRef<Element | null>(null);
+
+  useEffect(() => {
+    if (fileUploadRef.current) {
+      // Encontra o input file dentro do componente FileUpload
+      const fileInput = fileUploadRef.current.getElement().querySelector('input[type="file"]');
+      if (fileInput) {
+        fileInput.setAttribute('capture', 'environment');
+        fileInput.setAttribute('accept', 'image/*,application/pdf');
+        fileInputRef.current = fileInput;
+      }
+    }
+  }, []);
+
 
   const newExpenseDialogFooter = (
     <>
@@ -60,7 +74,7 @@ export default function TripExpenseDialog(
             onClick={() => {
               handleSaveExpense();
               setUploadSuccess(false);
-              }
+            }
             }
           />
         </>
@@ -97,8 +111,8 @@ export default function TripExpenseDialog(
           placeholder="Selecione"
           autoFocus
           className={classNames('w-full md:w-14rem', {
-              'p-invalid': submitted && !tripExpense.expenses,
-            })}
+            'p-invalid': submitted && !tripExpense.expenses,
+          })}
         />
         {submitted && !tripExpense.expenses && <small className="p-invalid">Transporte é obrigatório</small>}
       </div>
@@ -145,8 +159,8 @@ export default function TripExpenseDialog(
           options={['Pessoal', 'Agrocontar']}
           placeholder="Selecione"
           className={classNames('w-full md:w-14rem', {
-              'p-invalid': submitted && !tripExpense.typePayment,
-            })}
+            'p-invalid': submitted && !tripExpense.typePayment,
+          })}
         />
         {submitted && !tripExpense.typePayment && <small className="p-invalid">O tipo de pagamento é obrigatório</small>}
       </div>
@@ -181,25 +195,33 @@ export default function TripExpenseDialog(
           accept="image/*, application/pdf"
           auto
           maxFileSize={50000000}
+          chooseOptions={{
+            icon: 'pi pi-camera',
+            label: 'Tirar Foto',
+            className: 'p-button-success'
+          }}
+          chooseLabel="Comprovante"
+          className="mr-2"
+
           onBeforeUpload={() => setUploading(true)}
           onUpload={(e) => {
-        try {
-          const response = JSON.parse(e.xhr.response);
-          if (response.path) {
-            setTripExpense({ ...tripExpense, proof: response.path });
+            try {
+              const response = JSON.parse(e.xhr.response);
+              if (response.path) {
+                setTripExpense({ ...tripExpense, proof: response.path });
+              }
+              setUploadSuccess(true)
+            } catch (err) {
+              toast.current?.show({
+                severity: 'error',
+                summary: 'Erro',
+                detail: 'Erro ao fazer upload do arquivo',
+                life: 3000,
+              });
+              console.error("Erro no upload:", err);
             }
-            setUploadSuccess(true)
-          } catch (err) {
-            toast.current?.show({
-              severity: 'error',
-              summary: 'Erro',
-              detail: 'Erro ao fazer upload do arquivo',
-              life: 3000,
-            });
-            console.error("Erro no upload:", err);
-          }
-          setUploading(false);
-        
+            setUploading(false);
+
           }}
           onError={(e) => {
             let errorMessage = 'Erro ao enviar o arquivo';
@@ -222,9 +244,6 @@ export default function TripExpenseDialog(
 
             setUploading(false);
           }}
-
-          chooseLabel="Comprovante"
-          className="mr-2"
 
           onValidationFail={(e) => {
             console.error("Erro de validação:", e);
