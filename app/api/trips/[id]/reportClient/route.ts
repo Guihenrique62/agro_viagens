@@ -42,7 +42,7 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
   
   const filteredExpenses = trip.trip_expenses.filter((exp: any) => {
   // Se for combustível E tiver cálculo por KM, exclui do array
-  if (exp.expenses.name === 'Combustivel' && calculateKMTransport) {
+  if (exp.expenses.name === 'Combustivel' && calculateKMTransport || exp.expenses.name === 'Combustível' && calculateKMTransport) {
     return false;
   }
   return true;
