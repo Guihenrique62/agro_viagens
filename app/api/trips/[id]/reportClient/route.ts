@@ -35,22 +35,30 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
   }
 
   // Calcular totais
-  const totalExpenses = trip.trip_expenses.reduce((sum:any, exp:any) => sum + exp.value, 0)
 
-  const totalAgrocontarExpenses = trip.trip_expenses
+    const calculateKMTransport = trip.trip_transports.some(
+    trp => trp.transport.calculateKM
+  );
+  
+  const filteredExpenses = trip.trip_expenses.filter((exp: any) => {
+  // Se for combustível E tiver cálculo por KM, exclui do array
+  if (exp.expenses.name === 'Combustivel' && calculateKMTransport) {
+    return false;
+  }
+  return true;
+});
+
+  const totalExpenses = filteredExpenses.reduce((sum: any, exp: any) => sum + exp.value, 0);
+
+  const totalAgrocontarExpenses = filteredExpenses
   .filter((exp: any) => exp.typePayment === 'Agrocontar')
   .reduce((sum:any, exp:any) => sum + exp.value, 0);
 
-  const totalPessoalExpenses = trip.trip_expenses
+  const totalPessoalExpenses = filteredExpenses
   .filter((exp: any) => exp.typePayment === 'Pessoal')
   .reduce((sum:any, exp:any) => sum + exp.value, 0);
  
-  const combustivelExpense = trip.trip_expenses
-  .filter((exp: any) => exp.name === 'Combustivel')
 
-  const calculateKMTransport = trip.trip_transports.some(
-    trp => trp.transport.calculateKM
-  );
 
   let valorKm = 0
 
@@ -58,7 +66,7 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
     valorKm = (trip.endKM - trip.startKM) * trip.parameters_km.value
   }
   
-
+console.log(calculateKMTransport);
 
   const formatedDate = (date: any) => {
       const [year, month, day] = new Date(date).toISOString().split('T')[0].split('-');

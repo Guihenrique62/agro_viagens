@@ -21,6 +21,7 @@ export default function TripExpenseDialog(
     typeExpenseOptions,
     submitted,
     toast,
+    isEditing
   }: {
     expensesDialog: boolean;
     handleSaveExpense: () => void;
@@ -30,6 +31,7 @@ export default function TripExpenseDialog(
     typeExpenseOptions: { id: number; name: string }[];
     submitted: boolean;
     toast: React.RefObject<any>;
+    isEditing?: boolean;
   }
 
 ) {
@@ -94,12 +96,18 @@ export default function TripExpenseDialog(
     <Dialog
       visible={expensesDialog}
       style={{ width: '450px' }}
-      header="Nova Despesa"
+      header={isEditing ? "Editar Despesa" : "Nova Despesa"}
       modal
       className="p-fluid"
       onHide={hideTripExpenseDialog}
       footer={newExpenseDialogFooter}
     >
+
+      {/* Adicione um campo oculto para ID quando estiver editando */}
+      {isEditing && (
+        <input type="hidden" value={tripExpense.id} />
+      )}
+
       <div className="field">
         <label htmlFor="expenses">Tipo de Despesa <span style={{ color: 'red' }}>*</span></label>
         <Dropdown
@@ -185,6 +193,15 @@ export default function TripExpenseDialog(
         />
       </div>
 
+       {isEditing && tripExpense.proof && (
+        <div className="field">
+          <label className="text-sm">Caso queria atualizar o comprovante é necessário excluir essa despesa e criar uma nova!</label>
+        </div>
+      )}
+
+      {!isEditing && (
+        
+      
       <div className="flex">
         <FileUpload
           id="proof-upload"
@@ -260,6 +277,7 @@ export default function TripExpenseDialog(
           <small className="p-invalid">O comprovante é obrigatório</small>
         )}
       </div>
+      )}
 
     </Dialog>
   );

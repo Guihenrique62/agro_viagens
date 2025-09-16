@@ -28,6 +28,8 @@ import { TripFinishDialog } from './components/TripFinishDialog/TripFinishDialog
 import { formatDateToBR, formatDateToPadrao } from '../untils/formatDateToISO';
 import { statusTrip } from './untils/statusTrip';
 import { TripReopenDialog } from './components/TripReopenDialog/TripReopenDialog';
+import { updateExpense } from './untils/updateExpense';
+
 
 
 
@@ -91,6 +93,7 @@ const TripsPage = () => {
   const [deleteTripExpenseDialog, setDeleteTripExpenseDialog] = useState(false);
 
   const [editTripDialog, setEditTripDialog] = useState(false);
+  const [editTripExpenseDialog, setEditTripExpenseDialog] = useState(false);
 
   const [expensesDialog, setExpensesDialog] = useState(false);
   const [showingExpenses, setShowingExpenses] = useState(false);
@@ -174,6 +177,7 @@ const TripsPage = () => {
   const hideTripExpenseDialog = () => {
     setSubmitted(false);
     setExpensesDialog(false);
+    setEditTripExpenseDialog(false);
   }
 
 
@@ -243,6 +247,21 @@ const TripsPage = () => {
     getTrips(toast, setTrips); // Atualiza a lista de viagens após salvar a despesa
   }
 
+  const handleEditExpense = async () => {
+    if (!currentExpenseTrip) return; // Garante que há uma trip selecionada
+    await updateExpense(
+      tripExpense,
+      tripExpenses,
+      currentExpenseTrip,
+      setEditTripExpenseDialog,
+      setTripExpense,
+      setTripExpenses,
+      emptyExpense,
+      toast,
+      setSubmitted,
+    )
+  }
+  
   // Deleta a despesa
   const handleDeleteExpense = async () => {
     await deleteTripExpense(
@@ -348,6 +367,7 @@ const TripsPage = () => {
                 setTripExpense={setTripExpense}
                 setDeleteTripExpenseDialog={setDeleteTripExpenseDialog}
                 loading={loading}
+                setEditTripExpenseDialog={setEditTripExpenseDialog}
               />
             </>
           ) : (
@@ -367,6 +387,7 @@ const TripsPage = () => {
                 openExpenses={openExpenses}
                 setTripFinishDialog = {setTripFinishDialog}
                 setTripReopenDialog = {setTripReopenDialog}
+                
               />
             </>
           )}
@@ -422,6 +443,18 @@ const TripsPage = () => {
             toast={toast}
           />
 
+          <TripExpenseDialog
+            expensesDialog={editTripExpenseDialog}
+            handleSaveExpense={handleEditExpense}
+            hideTripExpenseDialog={hideTripExpenseDialog}
+            tripExpense={tripExpense}
+            setTripExpense={setTripExpense}
+            typeExpenseOptions={typeExpenseOptions}
+            submitted={submitted}
+            toast={toast}
+            isEditing={true}
+          />
+          
           {/* Dialogo de exclusão de despesas */}
           <TripExpenseDeleteDialog
             deleteTripExpenseDialog={deleteTripExpenseDialog}

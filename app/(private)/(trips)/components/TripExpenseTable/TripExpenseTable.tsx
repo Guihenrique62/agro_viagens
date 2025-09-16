@@ -10,7 +10,8 @@ export default function TripExpenseTable({
   setShowingExpenses,
   setTripExpense,
   setDeleteTripExpenseDialog,
-  loading
+  loading,
+  setEditTripExpenseDialog
 }: any) {
 
   const headerExpenses = (
@@ -59,12 +60,25 @@ export default function TripExpenseTable({
     setDeleteTripExpenseDialog(true);
   };
 
+  const editExpense = (expense: TripExpense) => {
+    setTripExpense({...expense});
+    setEditTripExpenseDialog(true);
+  };
+
 
   const actionBodyTemplate = (rowData: TripExpense) => (
     <>
+     <Button
+        icon="pi pi-pencil"
+        rounded
+        severity="warning"
+        className="mr-2"
+        onClick={() => editExpense(rowData)}
+      />
       <Button
         icon="pi pi-download"
         rounded
+        className="mr-2"
         severity="info"
         onClick={() => {
           const link = document.createElement('a')

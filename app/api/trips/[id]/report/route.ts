@@ -45,7 +45,7 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
   .filter(exp => exp.typePayment === 'Pessoal')
   .reduce((sum: any, exp: any) => sum + exp.value, 0);
 
-  let total = trip.advance_value - totalExpenses
+  let total = trip.advance_value - totalPessoalExpenses
   let payOrRecive = ''
   
 
@@ -57,7 +57,7 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
 
   if(calculateKMTransport){
     valorKm = (trip.endKM - trip.startKM) * trip.parameters_km.value
-    total = trip.advance_value - (totalExpenses + valorKm)
+    total = trip.advance_value - (totalPessoalExpenses + valorKm)
   }
   
 
